@@ -307,7 +307,7 @@ const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","貫":"#009944","�
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
-let oimg=false;
+let oimg=false;let msort='ans';
 let view=({"#home":"home","#ogiri":"ogiri","#odai":"odai","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"home", q="", who=null, sort="old", aorder="post";
 
 function hl(s){s=esc(s);if(!q)return s;const k=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return s.replace(new RegExp(k,'gi'),m=>'<mark>'+m+'</mark>')}
@@ -417,7 +417,7 @@ function countUp(){document.querySelectorAll('.hs b[data-n]').forEach(el=>{const
   const f=now=>{const p=Math.min(1,(now-t0)/d);const e=1-Math.pow(1-p,3);el.textContent=dec?(n*e).toFixed(1):Math.round(n*e).toLocaleString();if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)});
   document.querySelectorAll('.h-bars i,.h-week i').forEach(i=>{const w=i.style.width,h=i.style.height;if(w){i.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=w))}if(h){i.style.height='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.height=h))}})}
 
-const snap=()=>({view,sort,q,who,aorder,rmode,oimg});
+const snap=()=>({view,sort,q,who,aorder,rmode,oimg,msort});
 const hurl=()=>view==='home'?location.pathname:'#'+view;
 function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
@@ -545,10 +545,10 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     const M={};const g=n=>M[n]||(M[n]={n,ans:0,odai:0,plus:0,minus:0,lk:0,kk:0,best:null,years:{}});
     D.topics.forEach(t=>{g(t.by).odai++;t.ans.forEach(a=>{const m=g(a[0]);m.ans++;m.plus+=a[2]||0;m.minus+=a[3]||0;m.lk+=likes(a);m.mk=(m.mk||0)+mlikes(a);const y=t.d.slice(0,4);m.years[y]=(m.years[y]||0)+1;if(!m.best||SC(a)>SC(m.best[0]))m.best=[a,t]})});
     D.kikaku.forEach(k=>{const m=g(k.by);m.kk++;m.kst=(m.kst||0)+(k.st||0)});
-    const arr=Object.values(M).filter(m=>m.ans>0).sort((x,y)=>y.ans-x.ans);
-    const max=arr[0].ans, total=arr.reduce((s,m)=>s+m.ans,0);
+    const avg=m=>(m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans;const arr=Object.values(M).filter(m=>m.ans>0).sort(msort==='avg'?(x,y)=>avg(y)-avg(x):msort==='odai'?(x,y)=>y.odai-x.odai||y.ans-x.ans:msort==='kk'?(x,y)=>y.kk-x.kk||y.ans-x.ans:(x,y)=>y.ans-x.ans);
+    const max=Math.max(...arr.map(m=>m.ans)), total=arr.reduce((s,m)=>s+m.ans,0);
     const yrs=[...new Set(D.topics.map(t=>t.d.slice(0,4)))].sort();const yrMax={};yrs.forEach(y=>yrMax[y]=Math.max(...arr.map(m=>m.years[y]||0)));
-    html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="mline" style="background:${col(m.n)}"></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span class="mavg" style="border-color:${col(m.n)}">1回答あたり <b style="color:${col(m.n)}">${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}</b>点</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span${(m.years[y]||0)>0&&m.years[y]===yrMax[y]?' class="ytop"':''}><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（合計 ${SC(m.best[0])}点）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
+    html=`<div class="rankseg seg mseg" style="margin-top:24px"><button data-ms="ans" class="${msort==='ans'?'on':''}">回答が多い順</button><button data-ms="avg" class="${msort==='avg'?'on':''}">1回答あたり</button><button data-ms="odai" class="${msort==='odai'?'on':''}">出題が多い順</button><button data-ms="kk" class="${msort==='kk'?'on':''}">企画が多い順</button></div><div class="rankhead">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="mline" style="background:${col(m.n)}"></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span class="mavg" style="border-color:${col(m.n)}">1回答あたり <b style="color:${col(m.n)}">${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}</b>点</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span${(m.years[y]||0)>0&&m.years[y]===yrMax[y]?' class="ytop"':''}><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（合計 ${SC(m.best[0])}点）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
   }else if(view==='home'){
     html=likeHome();cnt=1;
@@ -593,7 +593,8 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   list.querySelectorAll('.kseg button').forEach(b=>b.onclick=()=>{sort=b.dataset.k;render();window.scrollTo(0,0)});
   list.querySelectorAll('.oseg button').forEach(b=>b.onclick=()=>{oimg=b.dataset.oi==='1';render();window.scrollTo(0,0)});
   const ob=document.getElementById('omiBtn');if(ob){ob.onclick=drawOmikuji;if(lastOmi)showOmi(lastOmi)}
-  list.querySelectorAll('.rankseg:not(.kseg):not(.oseg) button').forEach(b=>b.onclick=()=>{rmode=b.dataset.r;render();window.scrollTo(0,0)});
+  list.querySelectorAll('.mseg button').forEach(b=>b.onclick=()=>{msort=b.dataset.ms;render();window.scrollTo(0,0)});
+  list.querySelectorAll('.rankseg:not(.kseg):not(.oseg):not(.mseg) button').forEach(b=>b.onclick=()=>{rmode=b.dataset.r;render();window.scrollTo(0,0)});
   list.querySelectorAll('.more').forEach(b=>b.onclick=()=>{
     const t=D.topics[+b.dataset.t];const ul=b.previousElementSibling;
     const best=Math.max(0,...t.ans.map(SC));let ans=t.ans;if(aorder==='score')ans=ans.map((a,i)=>[a,i]).sort((x,y)=>SC(y[0])-SC(x[0])||x[1]-y[1]).map(x=>x[0]);
@@ -606,7 +607,7 @@ document.getElementById('shot').addEventListener('click',e=>{if(e.target.id==='s
 function goBack(){if(!document.getElementById('shot').hidden){closeShot();return true}if(history.state&&history.state.d>0){history.back();return true}return false}
 window.addEventListener('popstate',e=>{const s=document.getElementById('shot');if(!s.hidden)closeShot(true);const p=e.state;if(!p||!p.view||p.shot)return;view=p.view;sort=p.sort;q=p.q||'';who=p.who;aorder=p.aorder;document.getElementById('q').value=q;document.getElementById('panel').hidden=true;render();window.scrollTo(0,p.y||0)});
 let RESTY=0;try{history.scrollRestoration='manual'}catch(e){}
-(()=>{let s=history.state;try{const nv=performance.getEntriesByType('navigation')[0];const ss=JSON.parse(sessionStorage.getItem('mp_pos')||'null');if(nv&&nv.type==='reload'&&ss&&ss.view)s=ss}catch(e){}if(s&&s.view&&!s.shot){view=s.view;sort=s.sort||sort;q=s.q||'';who=s.who||null;aorder=s.aorder||aorder;if(s.rmode)rmode=s.rmode;oimg=!!s.oimg;RESTY=s.y||0;document.getElementById('q').value=q}})();
+(()=>{let s=history.state;try{const nv=performance.getEntriesByType('navigation')[0];const ss=JSON.parse(sessionStorage.getItem('mp_pos')||'null');if(nv&&nv.type==='reload'&&ss&&ss.view)s=ss}catch(e){}if(s&&s.view&&!s.shot){view=s.view;sort=s.sort||sort;q=s.q||'';who=s.who||null;aorder=s.aorder||aorder;if(s.rmode)rmode=s.rmode;oimg=!!s.oimg;if(s.msort)msort=s.msort;RESTY=s.y||0;document.getElementById('q').value=q}})();
 try{history.replaceState({...snap(),y:RESTY,d:(history.state&&history.state.d)||0},'',hurl())}catch(e){}
 function savePos(){try{sessionStorage.setItem('mp_pos',JSON.stringify({...snap(),y:window.scrollY}))}catch(e){}}
 addEventListener('pagehide',savePos);document.addEventListener('visibilitychange',()=>{if(document.hidden)savePos()});
