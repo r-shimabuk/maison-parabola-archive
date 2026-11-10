@@ -608,6 +608,7 @@ window.addEventListener('popstate',e=>{const s=document.getElementById('shot');i
 let RESTY=0;try{history.scrollRestoration='manual'}catch(e){}
 (()=>{const s=history.state;if(s&&s.view&&!s.shot){view=s.view;sort=s.sort||sort;q=s.q||'';who=s.who||null;aorder=s.aorder||aorder;if(s.rmode)rmode=s.rmode;oimg=!!s.oimg;RESTY=s.y||0;document.getElementById('q').value=q}})();
 try{history.replaceState({...snap(),y:RESTY,d:(history.state&&history.state.d)||0},'',hurl())}catch(e){}
+addEventListener('pagehide',()=>{try{const c=history.state||{};if(!c.shot)history.replaceState({...c,...snap(),y:window.scrollY},'')}catch(e){}});
 let _st;addEventListener('scroll',()=>{clearTimeout(_st);_st=setTimeout(()=>{try{const c=history.state||{};if(!c.shot)history.replaceState({...c,...snap(),y:window.scrollY},'')}catch(e){}},250)},{passive:true});
 let tx=null,ty=0;window._moved=false;let _sx=0,_sy=0;document.addEventListener('touchstart',e=>{window._moved=false;_sx=e.touches[0].clientX;_sy=e.touches[0].clientY},{passive:true});document.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientX-_sx)>8||Math.abs(e.touches[0].clientY-_sy)>8)window._moved=true},{passive:true});
 document.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('.tabrow,.seg,.years,input')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
