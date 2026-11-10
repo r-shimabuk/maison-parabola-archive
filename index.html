@@ -109,7 +109,7 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .mbest{margin-top:16px;background:var(--paper);border-radius:12px;padding:14px 16px 12px;cursor:pointer}
 .mbest .lbl{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;font-weight:600;color:var(--sub)}.mbest .pt{color:#fff;font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 9px}
 .mbest .q{font-size:14px;font-weight:700;line-height:1.6;margin-top:10px;border-left:4px solid;padding-left:10px}
-.mbest .a{font-size:21px;line-height:1.6;margin-top:10px;white-space:pre-line}.mbest .bm{font-size:11px;color:var(--sub);margin-top:6px;text-align:right}
+.mbest .a{font-size:18px;line-height:1.6;margin-top:10px;white-space:pre-line}.mbest .bm{font-size:11px;color:var(--sub);margin-top:6px;text-align:right}
 .reshuf{font:inherit;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:1px 8px;cursor:pointer;color:var(--ink)}
 .kseg{margin:24px 0 10px}
 .omi{text-align:center;padding:16px 0 10px}
@@ -251,6 +251,8 @@ body.minion nav.tabs{top:33px}
 .myears span.ytop{background:var(--yellow);color:var(--ink)}
 @media (max-width:380px){.tab{font-size:11.5px;padding:4px 6px}}
 .mh[data-who]{cursor:pointer}.mname[data-who]::after{content:"回答を見る";display:inline-block;vertical-align:middle;margin-left:8px;font-size:11px;font-weight:600;letter-spacing:0;color:var(--sub);border:1px solid var(--line);border-radius:999px;padding:1px 8px;line-height:1.6}
+.ans .txt,.topic h3,.mbest .a,.mbest .q,.shot-card h3{word-break:keep-all;overflow-wrap:anywhere;line-break:strict;text-wrap:pretty}
+.mseg button{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -325,7 +327,7 @@ function ago(ms){if(!ms)return'';const s=(Date.now()-ms)/1000;if(s<60)return'た
 let AIX=null;function ansIndex(){if(!AIX){AIX={};D.topics.forEach((x,ti)=>x.ans.forEach(a=>{if(a[4])AIX[a[4]]=[a,x,ti]}))}return AIX}
 function openShot(id){const r=ansIndex()[id];if(!r)return;const [a,x,ti]=r;const s=document.getElementById('shot');
   s.innerHTML=`<div class="shot-in"><article class="topic omi-card shot-card"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span></div><h3>${esc(x.q)}</h3>${timg(x)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}<button class="mn${MYM.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="マイナス">−</button></span></li></ul></article><div class="shot-mark">MAISON PARABOLA ARCHIVE</div><div class="shot-act"><button class="shot-png">画像にする</button><button class="shot-x" aria-label="閉じる">閉じる</button></div></div>`;
-  s.hidden=false;document.body.style.overflow='hidden';navSave();try{history.pushState({...snap(),d:((history.state||{}).d||0)+1,shot:1},'')}catch(e){}s.firstChild.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
+  s.hidden=false;phraseWrap(s);document.body.style.overflow='hidden';navSave();try{history.pushState({...snap(),d:((history.state||{}).d||0)+1,shot:1},'')}catch(e){}s.firstChild.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
   s.querySelector('.shot-x').onclick=()=>closeShot();s.querySelector('.shot-png').onclick=()=>makePng(a,x);void 0}
 const FF='"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
 function wrapT(c,txt,w){const out=[];String(txt).split('\n').forEach(p=>{let line='';for(const ch of [...p]){if(c.measureText(line+ch).width>w&&line){out.push(line);line=ch}else line+=ch}out.push(line)});return out}
@@ -481,6 +483,16 @@ loadState();
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${a[4]?`<span class="st neg mnn" data-lid="${a[4]}"${mlikes(a)?'':' hidden'}>マイナス票 ${mlikes(a)}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
   return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li>`}
+const SEG=(typeof Intl!=='undefined'&&Intl.Segmenter)?new Intl.Segmenter('ja',{granularity:'word'}):null;
+const PHC=new Map();
+const isTail=s=>/^[ぁ-ゟー～〜ー、。，．！？!?…・」』）)\]】\s]+$/.test(s)&&s.length<=3;
+function phrases(str){if(PHC.has(str))return PHC.get(str);const out=[];let cur='';
+  for(const {segment:s} of SEG.segment(str)){if(!cur){cur=s;continue}
+    if(isTail(s)||/^[「『（(【]+$/.test(cur.slice(-1)))cur+=s;else{out.push(cur);cur=s}}
+  if(cur)out.push(cur);PHC.set(str,out);return out}
+function phraseWrap(root){if(!SEG)return;root.querySelectorAll('.ans .txt, .topic h3, .mbest .a, .mbest .q, .shot-card h3').forEach(el=>{if(el.dataset.ph)return;el.dataset.ph=1;
+  const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest('.st,.go,.who')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});const ns=[];while(w.nextNode())ns.push(w.currentNode);
+  ns.forEach(n=>{const v=n.nodeValue;if(v.length<6||!/[぀-ヿ一-鿿]/.test(v))return;const ps=phrases(v);if(ps.length<2)return;const f=document.createDocumentFragment();ps.forEach((p,i)=>{if(i)f.appendChild(document.createElement('wbr'));f.appendChild(document.createTextNode(p))});n.replaceWith(f)})})}
 function render(){if(window._posReady)setTimeout(savePos,0);
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   document.getElementById('omiTop').classList.toggle('on',view==='omikuji');
@@ -549,7 +561,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     const avg=m=>(m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans;const arr=Object.values(M).filter(m=>m.ans>0).sort(msort==='rand'?(x,y)=>((MRND[x.n]??=Math.random())-(MRND[y.n]??=Math.random())):msort==='avg'?(x,y)=>avg(y)-avg(x):msort==='odai'?(x,y)=>y.odai-x.odai||y.ans-x.ans:msort==='kk'?(x,y)=>y.kk-x.kk||y.ans-x.ans:(x,y)=>y.ans-x.ans);
     const max=Math.max(...arr.map(m=>m.ans)), total=arr.reduce((s,m)=>s+m.ans,0);
     const yrs=[...new Set(D.topics.map(t=>t.d.slice(0,4)))].sort();const yrMax={};yrs.forEach(y=>yrMax[y]=Math.max(...arr.map(m=>m.years[y]||0)));
-    html=`<div class="rankseg seg mseg" style="margin-top:24px"><button data-ms="rand" class="${msort==='rand'?'on':''}">ランダム</button><button data-ms="ans" class="${msort==='ans'?'on':''}">回答が多い順</button><button data-ms="avg" class="${msort==='avg'?'on':''}">1回答あたり</button><button data-ms="odai" class="${msort==='odai'?'on':''}">出題が多い順</button><button data-ms="kk" class="${msort==='kk'?'on':''}">企画が多い順</button></div><div class="rankhead">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh" data-who="${esc(m.n)}"><span class="mname" data-who="${esc(m.n)}" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="mline" style="background:${col(m.n)}"></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span class="mavg" style="border-color:${col(m.n)}">1回答あたり <b style="color:${col(m.n)}">${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}</b>点</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span${(m.years[y]||0)>0&&m.years[y]===yrMax[y]?' class="ytop"':''}><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest" data-aid="${m.best[0][4]}"><div class="lbl"><span>いちばん評価された答え</span><span class="pt" style="background:${col(m.n)}">${SC(m.best[0])}点</span></div><div class="q" style="border-color:${col(m.n)}">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}${aimg(m.best[0])}</div><div class="bm">${fmt(m.best[1].d)}</div></div>`:''}</article>`).join('');
+    html=`<div class="rankseg seg mseg" style="margin-top:24px"><button data-ms="ans" class="${msort==='ans'?'on':''}">回答が多い順</button><button data-ms="avg" class="${msort==='avg'?'on':''}">1回答あたり</button><button data-ms="odai" class="${msort==='odai'?'on':''}">出題が多い順</button><button data-ms="kk" class="${msort==='kk'?'on':''}">企画が多い順</button></div><div class="rankhead">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh" data-who="${esc(m.n)}"><span class="mname" data-who="${esc(m.n)}" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="mline" style="background:${col(m.n)}"></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span class="mavg" style="border-color:${col(m.n)}">1回答あたり <b style="color:${col(m.n)}">${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}</b>点</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span${(m.years[y]||0)>0&&m.years[y]===yrMax[y]?' class="ytop"':''}><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest" data-aid="${m.best[0][4]}"><div class="lbl"><span>いちばん評価された答え</span><span class="pt" style="background:${col(m.n)}">${SC(m.best[0])}点</span></div><div class="q" style="border-color:${col(m.n)}">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}${aimg(m.best[0])}</div><div class="bm">${fmt(m.best[1].d)}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
   }else if(view==='home'){
     html=likeHome();cnt=1;
@@ -588,6 +600,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   yrs.innerHTML=years.map(y=>`<a href="#y${y}" data-y="${y}">${y}</a>`).join('');
   yrs.querySelectorAll('a').forEach(a=>a.onclick=e=>{e.preventDefault();setMenu(false);const el=document.getElementById('y'+a.dataset.y);requestAnimationFrame(()=>el.scrollIntoView())});
   list.innerHTML=html||'<div class="empty">見つかりませんでした</div>';
+  phraseWrap(list);
   if(view==='home'){countUp();list.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goView(b.dataset.go))}
   list.querySelectorAll('.oi').forEach(el=>el.onclick=e=>{e.preventDefault();jumpTopic(+el.dataset.t)});
   const rs=document.getElementById('reshuf');if(rs)rs.onclick=()=>{SH=null;render()};
