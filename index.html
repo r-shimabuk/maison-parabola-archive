@@ -410,7 +410,7 @@ const snap=()=>({view,sort,q,who,aorder});
 const hurl=()=>view==='home'?location.pathname:'#'+view;
 function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
-function goView(v){navSave();view=v;window.scrollTo(0,0);render();navPush()}
+function goView(v){navSave();view=v;render();window.scrollTo(0,0);navPush()}
 function jumpTopic(ti,rep){if(!rep)navSave();view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
   render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){el.scrollIntoView({block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 let lastOmi=null;
@@ -595,7 +595,7 @@ document.addEventListener('touchend',e=>{if(tx===null)return;const t=e.changedTo
   document.getElementById('miniOmi').onclick=()=>document.getElementById('omiTop').click()})();
 document.getElementById('hero').addEventListener('click',e=>{if(e.target.closest('#omiTop'))return;goHome()});
 document.getElementById('omiTop').onclick=()=>{if(view!=='omikuji')goView('omikuji');const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(view!==b.dataset.v)goView(b.dataset.v)});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(view!==b.dataset.v)goView(b.dataset.v);window.scrollTo({top:0,behavior:view==='home'?'smooth':'auto'})});
 let tm;const qEl=document.getElementById('q');
 const qDone=()=>{qEl.value=qEl.value.replace(/[ \u3000]+$/,'');clearTimeout(tm);q=qEl.value.trim();render();qEl.blur()};
 qEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();qDone()}});
