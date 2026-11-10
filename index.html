@@ -387,6 +387,12 @@ async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;bt
 function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').forEach(s=>{const n=LK[id]||0;s.textContent='いいね '+n;s.hidden=!n});document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const li=e.target.closest('.ans li');if(li&&!e.target.closest('a,button')&&!document.getElementById('shot').contains(li)){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
 fetch(API+'/recent').then(r=>r.json()).then(j=>{RC=Array.isArray(j)?j:[];if(view==='home')render()}).catch(()=>{RC=RC||[];if(view==='home')render()});
+function refreshHome(){if(view!=='home'||document.hidden||!document.getElementById('shot').hidden)return;
+  Promise.all([fetch(API+'/recent').then(r=>r.json()),fetch(API+'/likes').then(r=>r.json())]).then(([rc,lk])=>{
+    if(!Array.isArray(rc))return;const k1=JSON.stringify(rc)+JSON.stringify(lk);if(k1===refreshHome.k)return;refreshHome.k=k1;
+    RC=rc;LK=lk||{};if(view==='home'&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}}).catch(()=>{})}
+setInterval(refreshHome,20000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome()});
 fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
