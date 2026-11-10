@@ -222,7 +222,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 .shot-mark{text-align:center;font-size:11px;letter-spacing:.14em;color:var(--sub);margin:16px 0 0;font-weight:600}
 .shot-act{display:flex;justify-content:center;gap:10px;margin-top:22px}
 .shot-act button{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer}
-.shot-img{display:block;width:100%;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,.08)}.shot-hint{text-align:center;font-size:12px;color:var(--sub);margin:12px 0 0}.shot-act a{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 16px;text-decoration:none}
+.shot-img{display:block;width:100%;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,.08)}.shot-hint{text-align:center;font-size:12px;color:var(--sub);margin:12px 0 0}.shot-act .shot-cp{background:var(--yellow);border-color:var(--yellow);font-weight:600}.shot-act a{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 16px;text-decoration:none}
 .shot-act .shot-x{background:var(--ink);border-color:var(--ink);color:#fff}
 .timg{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}.timg a{display:block;flex:1 1 0;min-width:0;max-width:100%}.timg img{display:block;width:100%;max-height:420px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
 .aimg{display:block;margin:4px 0 2px}.aimg img{display:block;max-width:100%;max-height:340px;border-radius:8px;border:1px solid var(--line);background:#fff}
@@ -237,6 +237,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 .mini .mt{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--yellow)}
 .mini .mo{font:inherit;font-size:11px;font-weight:600;background:var(--yellow);color:var(--ink);border:0;border-radius:999px;padding:2px 10px;cursor:pointer}
 body.minion nav.tabs{top:33px}
+.kdl{color:#FF3400;font-weight:600}.kdm{color:#2f5d8a;font-weight:600}
 </style>
 </head>
 <body>
@@ -334,19 +335,20 @@ async function makePng(a,x){
   if(aI){y+=16;const s=Math.min(IW/aI.width,640/aI.height,3);c.drawImage(aI,L,y,aI.width*s,aI.height*s)}
   c.fillStyle='#6b6a66';c.font=`600 22px ${FF}`;c.textAlign='center';c.fillText('M A I S O N   P A R A B O L A   A R C H I V E',W/2,cv.height-P+6);
   let url;try{url=cv.toDataURL('image/png')}catch(e){return}const s=document.getElementById('shot');
-  s.querySelector('.shot-in').innerHTML=`<img class="shot-img" src="${url}" alt="答えの画像"><p class="shot-hint">長押し（パソコンは右クリック）で保存できます</p><div class="shot-act"><a class="shot-dl" href="${url}" download="maison-parabola-${a[4]||'answer'}.png">保存する</a><button class="shot-x">閉じる</button></div>`;
+  s.querySelector('.shot-in').innerHTML=`<img class="shot-img" src="${url}" alt="答えの画像"><div class="shot-act"><button class="shot-cp">コピーする</button><button class="shot-x">閉じる</button></div><p class="shot-hint" id="cpMsg">画像を長押しでもコピー・保存できます</p>`;
   s.querySelector('.shot-x').onclick=()=>closeShot();
+  s.querySelector('.shot-cp').onclick=async()=>{const m=document.getElementById('cpMsg');try{const bp=new Promise(r=>cv.toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':bp})]);m.textContent='コピーしました';s.querySelector('.shot-cp').textContent='コピーしました'}catch(e){m.textContent='この画面ではコピーできませんでした。画像を長押ししてコピーしてください'}};
 }
 function closeShot(silent){const s=document.getElementById('shot');if(s.hidden)return;if(!silent&&history.state&&history.state.shot){history.back();return}s.hidden=true;s.innerHTML='';document.body.style.overflow=''}
 function likeHome(){
   const ix=ansIndex();
-  let list=(RC||[]).filter(r=>ix[r[0]]&&(LK[r[0]]||0)>0);
+  let list=(RC||[]).filter(r=>ix[r[0]]&&((LK[r[0]]||0)>0||(MK[r[0]]||0)>0));
   const seen=new Set(list.map(r=>r[0]));
   Object.keys(LK).filter(id=>LK[id]>0&&ix[id]&&!seen.has(id)).forEach(id=>list.push([id,0]));
-  let h=`<div class="hhead"><h2>最近いいねされた答え</h2><p>いいねが押された新しい順に並んでいます</p></div>`;
+  let h=`<div class="hhead"><h2>最近評価された答え</h2><p>いいね・マイナスが押された新しい順に並んでいます</p></div>`;
   if(RC===null&&!list.length)return h+`<p class="hempty">読み込み中…</p>`;
   if(!list.length)return h+`<p class="hempty">まだいいねがありません。<button class="hgo" data-go="ogiri">大喜利を読む →</button></p>`;
-  return h+list.slice(0,100).map(([id,tm])=>{const [a,x,ti]=ix[id];return `<article class="topic"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span><span class="n">${ago(tm)}</span></div><h3 class="jump" data-t="${ti}">${hl(x.q)}<span class="go">答えをすべて見る →</span></h3>${timg(x)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`}).join('');
+  return h+list.slice(0,100).map(([id,tm,kd])=>{const [a,x,ti]=ix[id];return `<article class="topic"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span><span class="n">${kd==='m'?'<b class="kdm">− マイナス</b>':'<b class="kdl">♡ いいね</b>'} ${ago(tm)}</span></div><h3 class="jump" data-t="${ti}">${hl(x.q)}<span class="go">答えをすべて見る →</span></h3>${timg(x)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`}).join('');
 }
 function homeHTML(){
   const T=D.topics,K=D.kikaku;const A=[];T.forEach((t,ti)=>t.ans.forEach(a=>A.push([a,t])));
@@ -431,12 +433,12 @@ const likeBtn=a=>a[4]?`<button class="lk${MY.has(a[4])?' on':''}" data-id="${a[4
 function saveMy(){try{localStorage.setItem('mp_liked',JSON.stringify([...MY]))}catch(e){}}
 function paintMinus(id){document.querySelectorAll('.mn[data-id="'+id+'"]').forEach(b=>b.classList.toggle('on',MYM.has(id)));document.querySelectorAll('.mnn[data-lid="'+id+'"]').forEach(s=>{const n=MK[id]||0;s.textContent='マイナス票 '+n;s.hidden=!n})}
 async function toggleMinus(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
-  const was=MYM.has(id);if(was)MYM.delete(id);else MYM.add(id);MK[id]=Math.max(0,(MK[id]||0)+(was?-1:1));saveMyM();paintMinus(id);
+  const was=MYM.has(id);if(was)MYM.delete(id);else MYM.add(id);if(!was&&Array.isArray(RC)){RC=RC.filter(r=>r[0]!==id);RC.unshift([id,Date.now(),'m'])}MK[id]=Math.max(0,(MK[id]||0)+(was?-1:1));saveMyM();paintMinus(id);
   try{const r=await fetch(API+'/minus',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,uid:UID})});const j=await r.json();
     if(typeof j.count==='number'){MK[id]=j.count;if(j.minused)MYM.add(id);else MYM.delete(id);saveMyM();paintMinus(id)}}catch(e){}
   btn.disabled=false}
 async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
-  const was=MY.has(id);if(was)MY.delete(id);else MY.add(id);if(!was&&Array.isArray(RC)){RC=RC.filter(r=>r[0]!==id);RC.unshift([id,Date.now()])}LK[id]=Math.max(0,(LK[id]||0)+(was?-1:1));saveMy();paintLikes(id);
+  const was=MY.has(id);if(was)MY.delete(id);else MY.add(id);if(!was&&Array.isArray(RC)){RC=RC.filter(r=>r[0]!==id);RC.unshift([id,Date.now(),'l'])}LK[id]=Math.max(0,(LK[id]||0)+(was?-1:1));saveMy();paintLikes(id);
   try{const r=await fetch(API+'/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,uid:UID})});const j=await r.json();
     if(typeof j.count==='number'){LK[id]=j.count;if(j.liked)MY.add(id);else MY.delete(id);saveMy();paintLikes(id)}}catch(e){}
   btn.disabled=false}
@@ -444,9 +446,9 @@ function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').for
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const mb_=e.target.closest('.mn');if(mb_){e.preventDefault();toggleMinus(mb_);return}const li=e.target.closest('.ans li');if(li&&!e.target.closest('a,button')&&!document.getElementById('shot').contains(li)){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
 fetch(API+'/recent').then(r=>r.json()).then(j=>{RC=Array.isArray(j)?j:[];if(view==='home')render()}).catch(()=>{RC=RC||[];if(view==='home')render()});
 function refreshHome(){if(view!=='home'||document.hidden||!document.getElementById('shot').hidden)return;
-  Promise.all([fetch(API+'/recent').then(r=>r.json()),fetch(API+'/likes').then(r=>r.json())]).then(([rc,lk])=>{
-    if(!Array.isArray(rc))return;const k1=JSON.stringify(rc)+JSON.stringify(lk);if(k1===refreshHome.k)return;refreshHome.k=k1;
-    RC=rc;LK=lk||{};if(view==='home'&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}}).catch(()=>{})}
+  Promise.all([fetch(API+'/recent').then(r=>r.json()),fetch(API+'/likes').then(r=>r.json()),fetch(API+'/minus').then(r=>r.json()).catch(()=>({}))]).then(([rc,lk,mk])=>{
+    if(!Array.isArray(rc))return;const k1=JSON.stringify(rc)+JSON.stringify(lk)+JSON.stringify(mk);if(k1===refreshHome.k)return;refreshHome.k=k1;
+    RC=rc;LK=lk||{};if(mk&&!mk.error)MK=mk;if(view==='home'&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}}).catch(()=>{})}
 setInterval(refreshHome,20000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome()});
 fetch(API+'/minus').then(r=>r.json()).then(j=>{if(j&&!j.error){MK=j;if(Object.keys(MK).length)render()}}).catch(()=>{});

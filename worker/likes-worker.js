@@ -40,9 +40,10 @@ export default {
       let recent = (await env.LIKES.get("recent", "json")) || [];
       if (!had) {
         recent = recent.filter((r) => r[0] !== id);
-        recent.unshift([id, Date.now()]);
+        recent.unshift([id, Date.now(), "l"]);
       } else if (!counts[id]) {
-        recent = recent.filter((r) => r[0] !== id);
+        const mc0 = (await env.LIKES.get("mcounts", "json")) || {};
+        if (!mc0[id]) recent = recent.filter((r) => r[0] !== id);
       }
       await env.LIKES.put("recent", JSON.stringify(recent.slice(0, 200)));
       return json({ id, liked: !had, count: counts[id] || 0 });
@@ -68,6 +69,15 @@ export default {
         mc[id] = (mc[id] || 0) + 1;
       }
       await env.LIKES.put("mcounts", JSON.stringify(mc));
+      let recent = (await env.LIKES.get("recent", "json")) || [];
+      if (!had) {
+        recent = recent.filter((r) => r[0] !== id);
+        recent.unshift([id, Date.now(), "m"]);
+      } else if (!mc[id]) {
+        const c0 = (await env.LIKES.get("counts", "json")) || {};
+        if (!c0[id]) recent = recent.filter((r) => r[0] !== id);
+      }
+      await env.LIKES.put("recent", JSON.stringify(recent.slice(0, 200)));
       return json({ id, minused: !had, count: mc[id] || 0 });
     }
     return json({ error: "not found" }, 404);
