@@ -391,7 +391,7 @@ function refreshHome(){if(view!=='home'||document.hidden||!document.getElementBy
   Promise.all([fetch(API+'/recent').then(r=>r.json()),fetch(API+'/likes').then(r=>r.json())]).then(([rc,lk])=>{
     if(!Array.isArray(rc))return;const k1=JSON.stringify(rc)+JSON.stringify(lk);if(k1===refreshHome.k)return;refreshHome.k=k1;
     RC=rc;LK=lk||{};if(view==='home'&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}}).catch(()=>{})}
-setInterval(refreshHome,20000);
+setInterval(refreshHome,5000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome()});
 fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}`;
