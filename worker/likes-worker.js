@@ -47,6 +47,29 @@ export default {
       await env.LIKES.put("recent", JSON.stringify(recent.slice(0, 200)));
       return json({ id, liked: !had, count: counts[id] || 0 });
     }
+    if (req.method === "GET" && url.pathname === "/minus") {
+      const mc = (await env.LIKES.get("mcounts", "json")) || {};
+      return json(mc);
+    }
+    if (req.method === "POST" && url.pathname === "/minus") {
+      let b;
+      try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
+      const id = String(b.id || ""), uid = String(b.uid || "");
+      if (!/^\d{10,25}$/.test(id) || !/^[a-z0-9]{8,40}$/.test(uid)) return json({ error: "bad id" }, 400);
+      const key = "m:" + uid + ":" + id;
+      const had = await env.LIKES.get(key);
+      const mc = (await env.LIKES.get("mcounts", "json")) || {};
+      if (had) {
+        await env.LIKES.delete(key);
+        mc[id] = Math.max(0, (mc[id] || 0) - 1);
+        if (!mc[id]) delete mc[id];
+      } else {
+        await env.LIKES.put(key, "1");
+        mc[id] = (mc[id] || 0) + 1;
+      }
+      await env.LIKES.put("mcounts", JSON.stringify(mc));
+      return json({ id, minused: !had, count: mc[id] || 0 });
+    }
     return json({ error: "not found" }, 404);
   },
 };

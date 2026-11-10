@@ -226,6 +226,10 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 .shot-act .shot-x{background:var(--ink);border-color:var(--ink);color:#fff}
 .timg{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}.timg a{display:block;flex:1 1 0;min-width:0;max-width:100%}.timg img{display:block;width:100%;max-height:420px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
 .aimg{display:block;margin:4px 0 2px}.aimg img{display:block;max-width:100%;max-height:340px;border-radius:8px;border:1px solid var(--line);background:#fff}
+.lkc{display:flex;flex-direction:column;align-items:center;gap:6px}
+.mn{font:inherit;font-size:20px;line-height:1;width:1.6em;height:1.6em;border:1.5px solid var(--line);border-radius:999px;background:#fff;color:#2f5d8a;cursor:pointer;padding:0}
+.mn.on{background:#2f5d8a;border-color:#2f5d8a;color:#fff}
+.st.mnn[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -296,7 +300,7 @@ const LIMIT=12;
 function ago(ms){if(!ms)return'';const s=(Date.now()-ms)/1000;if(s<60)return'たった今';if(s<3600)return Math.floor(s/60)+'分前';if(s<86400)return Math.floor(s/3600)+'時間前';if(s<86400*30)return Math.floor(s/86400)+'日前';const d=new Date(ms);return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')}
 let AIX=null;function ansIndex(){if(!AIX){AIX={};D.topics.forEach((x,ti)=>x.ans.forEach(a=>{if(a[4])AIX[a[4]]=[a,x,ti]}))}return AIX}
 function openShot(id){const r=ansIndex()[id];if(!r)return;const [a,x,ti]=r;const s=document.getElementById('shot');
-  s.innerHTML=`<div class="shot-in"><article class="topic omi-card shot-card"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span></div><h3>${esc(x.q)}</h3>${timg(x)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article><div class="shot-mark">MAISON PARABOLA ARCHIVE</div><div class="shot-act"><button class="shot-png">画像にする</button><button class="shot-go" data-t="${ti}">答えをすべて見る</button><button class="shot-x" aria-label="閉じる">閉じる</button></div></div>`;
+  s.innerHTML=`<div class="shot-in"><article class="topic omi-card shot-card"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span></div><h3>${esc(x.q)}</h3>${timg(x)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}<button class="mn${MYM.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="マイナス">−</button></span></li></ul></article><div class="shot-mark">MAISON PARABOLA ARCHIVE</div><div class="shot-act"><button class="shot-png">画像にする</button><button class="shot-go" data-t="${ti}">答えをすべて見る</button><button class="shot-x" aria-label="閉じる">閉じる</button></div></div>`;
   s.hidden=false;document.body.style.overflow='hidden';navSave();try{history.pushState({...snap(),d:((history.state||{}).d||0)+1,shot:1},'')}catch(e){}s.firstChild.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
   s.querySelector('.shot-x').onclick=()=>closeShot();s.querySelector('.shot-png').onclick=()=>makePng(a,x);s.querySelector('.shot-go').onclick=()=>{closeShot(true);jumpTopic(ti,true)}}
 const FF='"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif';
@@ -407,21 +411,29 @@ let SH=null;function shuffled(){if(!SH){SH=D.topics.map((t,i)=>[t,i]);for(let i=
 const API='https://maison-parabola-likes.ryuju111.workers.dev';
 let LK={};let MY=new Set();let UID='';
 try{UID=localStorage.getItem('mp_uid')||'';if(!UID){UID=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(36).padStart(2,'0')).join('').slice(0,20).replace(/[^a-z0-9]/g,'a');localStorage.setItem('mp_uid',UID)}MY=new Set(JSON.parse(localStorage.getItem('mp_liked')||'[]'))}catch(e){UID='m'+Math.random().toString(36).slice(2,14)}
-let RC=null;
+let RC=null;let MK={};let MYM=new Set();try{MYM=new Set(JSON.parse(localStorage.getItem('mp_minus')||'[]'))}catch(e){}
+function saveMyM(){try{localStorage.setItem('mp_minus',JSON.stringify([...MYM]))}catch(e){}}
 const IMG='img/';
 const timg=x=>x&&x.img?`<div class="timg">${x.img.map(f=>`<a href="${IMG}${f}" target="_blank" rel="noopener"><img src="${IMG}${f}" loading="lazy" alt="お題の画像"></a>`).join('')}</div>`:'';
 const aimg=a=>a[5]?`<a class="aimg" href="${IMG}${a[5]}" target="_blank" rel="noopener"><img src="${IMG}${a[5]}" loading="lazy" alt="画像の回答"></a>`:'';
 const likes=a=>LK[a[4]]||0;
-const SC=a=>(a[2]||0)-(a[3]||0)+likes(a)*2;
+const mlikes=a=>MK[a[4]]||0;
+const SC=a=>(a[2]||0)-(a[3]||0)+likes(a)*2-mlikes(a)*2;
 const likeBtn=a=>a[4]?`<button class="lk${MY.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="いいね">${MY.has(a[4])?'♥':'♡'}</button>`:'';
 function saveMy(){try{localStorage.setItem('mp_liked',JSON.stringify([...MY]))}catch(e){}}
+function paintMinus(id){document.querySelectorAll('.mn[data-id="'+id+'"]').forEach(b=>b.classList.toggle('on',MYM.has(id)));document.querySelectorAll('.mnn[data-lid="'+id+'"]').forEach(s=>{const n=MK[id]||0;s.textContent='マイナス票 '+n;s.hidden=!n})}
+async function toggleMinus(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
+  const was=MYM.has(id);if(was)MYM.delete(id);else MYM.add(id);MK[id]=Math.max(0,(MK[id]||0)+(was?-1:1));saveMyM();paintMinus(id);
+  try{const r=await fetch(API+'/minus',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,uid:UID})});const j=await r.json();
+    if(typeof j.count==='number'){MK[id]=j.count;if(j.minused)MYM.add(id);else MYM.delete(id);saveMyM();paintMinus(id)}}catch(e){}
+  btn.disabled=false}
 async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
   const was=MY.has(id);if(was)MY.delete(id);else MY.add(id);if(!was&&Array.isArray(RC)){RC=RC.filter(r=>r[0]!==id);RC.unshift([id,Date.now()])}LK[id]=Math.max(0,(LK[id]||0)+(was?-1:1));saveMy();paintLikes(id);
   try{const r=await fetch(API+'/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,uid:UID})});const j=await r.json();
     if(typeof j.count==='number'){LK[id]=j.count;if(j.liked)MY.add(id);else MY.delete(id);saveMy();paintLikes(id)}}catch(e){}
   btn.disabled=false}
 function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').forEach(s=>{const n=LK[id]||0;s.textContent='いいね '+n;s.hidden=!n});document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
-document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const li=e.target.closest('.ans li');if(li&&!e.target.closest('a,button')&&!document.getElementById('shot').contains(li)){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
+document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const mb_=e.target.closest('.mn');if(mb_){e.preventDefault();toggleMinus(mb_);return}const li=e.target.closest('.ans li');if(li&&!e.target.closest('a,button')&&!document.getElementById('shot').contains(li)){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
 fetch(API+'/recent').then(r=>r.json()).then(j=>{RC=Array.isArray(j)?j:[];if(view==='home')render()}).catch(()=>{RC=RC||[];if(view==='home')render()});
 function refreshHome(){if(view!=='home'||document.hidden||!document.getElementById('shot').hidden)return;
   Promise.all([fetch(API+'/recent').then(r=>r.json()),fetch(API+'/likes').then(r=>r.json())]).then(([rc,lk])=>{
@@ -429,8 +441,9 @@ function refreshHome(){if(view!=='home'||document.hidden||!document.getElementBy
     RC=rc;LK=lk||{};if(view==='home'&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}}).catch(()=>{})}
 setInterval(refreshHome,20000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome()});
+fetch(API+'/minus').then(r=>r.json()).then(j=>{if(j&&!j.error){MK=j;if(Object.keys(MK).length)render()}}).catch(()=>{});
 fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
-const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}`;
+const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${a[4]?`<span class="st neg mnn" data-lid="${a[4]}"${mlikes(a)?'':' hidden'}>マイナス票 ${mlikes(a)}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
   return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li>`}
 function render(){
@@ -483,25 +496,25 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
       html+=`<article class="topic" id="t${ti}"><div class="meta"><span>${fmt(t.d)}</span><span>出題 ${esc(t.by)}</span><span class="n">${ans.length}答${t.ans.reduce((x,a)=>x+(a[2]||0),0)?` ・ スタンプ ${t.ans.reduce((x,a)=>x+(a[2]||0),0)}`:''}</span></div><h3>${hl(t.q)}</h3>${timg(t)}<ul class="ans">${ans.slice(0,open).map(li).join('')}</ul>${ans.length>open?`<button class="more" data-t="${ti}">残り${ans.length-open}答を読む ↓</button>`:''}</article>`;
     });
   }else if(view==='rank'){
-    const all=[];D.topics.forEach((t,ti)=>t.ans.forEach((a,i)=>{if(rmode==='minus'?(a[3]||0)>0:SC(a)>0)all.push([a,t,i,ti])}));
-    const key=a=>rmode==='minus'?(a[3]*1000-SC(a)):SC(a);
+    const all=[];D.topics.forEach((t,ti)=>t.ans.forEach((a,i)=>{if(rmode==='minus'?((a[3]||0)+mlikes(a))>0:SC(a)>0)all.push([a,t,i,ti])}));
+    const key=a=>rmode==='minus'?(((a[3]||0)+mlikes(a)*2)*1000-SC(a)):SC(a);
     all.sort((x,y)=>(key(y[0])-key(x[0]))||(x[1].d<y[1].d?-1:x[1].d>y[1].d?1:x[2]-y[2]));
     let rank=0,prev=null,pos=0;const out=[];
     all.forEach(([a,t,ai,ti])=>{pos++;const k=key(a);if(k!==prev){rank=pos;prev=k}
       if(who&&a[0]!==who)return;
       if(ql&&!(a[1].toLowerCase().includes(ql)||t.q.toLowerCase().includes(ql)))return;
       if(out.length>=500)return;
-      out.push(`<article class="topic"><div class="meta"><span class="rno${rank<=3&&rmode!=='minus'?' g'+rank:''}">${rank}位</span><span>${fmt(t.d)}</span><span class="n">${rmode==='minus'?'マイナス −'+a[3]:'評価 '+SC(a)}</span></div><h3 class="jump" data-t="${ti}">${hl(t.q)}<span class="go">答えをすべて見る →</span></h3>${timg(t)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`)});
+      out.push(`<article class="topic"><div class="meta"><span class="rno${rank<=3&&rmode!=='minus'?' g'+rank:''}">${rank}位</span><span>${fmt(t.d)}</span><span class="n">${rmode==='minus'?'マイナス −'+((a[3]||0)+mlikes(a)*2):'評価 '+SC(a)}</span></div><h3 class="jump" data-t="${ti}">${hl(t.q)}<span class="go">答えをすべて見る →</span></h3>${timg(t)}<ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`)});
     cnt=out.length;
     html=`<div class="rankseg seg"><button data-r="plus" class="${rmode==='plus'?'on':''}">プラスランキング</button><button data-r="minus" class="${rmode==='minus'?'on':''}">マイナスランキング</button></div><div class="rankhead">${rmode==='minus'?'涙などマイナスのスタンプが押された回答'+all.length+'件を、マイナスが多い順に並べています':'スタンプからマイナスのスタンプ（涙など）を引いた評価が1以上の回答'+all.length.toLocaleString()+'件を、評価が高い順に並べています'}${out.length>=500?'（上位500件まで表示）':''}</div>`+out.join('');
   }else if(view==='member'){
     const M={};const g=n=>M[n]||(M[n]={n,ans:0,odai:0,plus:0,minus:0,lk:0,kk:0,best:null,years:{}});
-    D.topics.forEach(t=>{g(t.by).odai++;t.ans.forEach(a=>{const m=g(a[0]);m.ans++;m.plus+=a[2]||0;m.minus+=a[3]||0;m.lk+=likes(a);const y=t.d.slice(0,4);m.years[y]=(m.years[y]||0)+1;if(!m.best||SC(a)>SC(m.best[0]))m.best=[a,t]})});
+    D.topics.forEach(t=>{g(t.by).odai++;t.ans.forEach(a=>{const m=g(a[0]);m.ans++;m.plus+=a[2]||0;m.minus+=a[3]||0;m.lk+=likes(a);m.mk=(m.mk||0)+mlikes(a);const y=t.d.slice(0,4);m.years[y]=(m.years[y]||0)+1;if(!m.best||SC(a)>SC(m.best[0]))m.best=[a,t]})});
     D.kikaku.forEach(k=>{const m=g(k.by);m.kk++;m.kst=(m.kst||0)+(k.st||0)});
     const arr=Object.values(M).filter(m=>m.ans>0).sort((x,y)=>y.ans-x.ans);
     const max=arr[0].ans, total=arr.reduce((s,m)=>s+m.ans,0);
     const yrs=[...new Set(D.topics.map(t=>t.d.slice(0,4)))].sort();
-    html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}<span>1回答あたり評価 ${((m.plus-m.minus+m.lk*2)/m.ans).toFixed(2)}</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（評価 ${SC(m.best[0])}）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
+    html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span>1回答あたり評価 ${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（評価 ${SC(m.best[0])}）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
   }else if(view==='home'){
     html=likeHome();cnt=1;
