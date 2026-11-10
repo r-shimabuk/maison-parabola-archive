@@ -241,6 +241,8 @@ body.minion nav.tabs{top:33px}
 .oseg{margin-top:-6px}.oth{width:44px;height:44px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px;border:1px solid var(--line)}.otag{display:inline-block;margin-left:6px;font-size:10.5px;color:var(--sub);border:1px solid var(--line);border-radius:999px;padding:0 6px}
 .tcap{font-size:11.5px;color:var(--sub);margin-top:4px}.obig{display:block;width:100%;max-height:260px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px;margin:2px 0 8px}.ocap{display:block;font-size:11.5px;color:var(--sub);font-weight:400;margin-top:2px}.oi.oimg{align-items:flex-start}
 .timg img,.aimg img{height:auto}
+.newpill{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:25;font:inherit;font-size:13px;font-weight:600;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:8px 16px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
+.newpill[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -284,6 +286,7 @@ body.minion nav.tabs{top:33px}
 <p class="lknote" id="lknote"><span class="h">♡</span>埋もれた名回答にいいねを（スタンプ2つ分）</p>
 <div id="list"></div>
 </main>
+<button class="newpill" id="newPill" hidden>新しい評価</button>
 <div class="shot" id="shot" hidden></div>
 <button class="totop" id="totop" aria-label="いちばん上へ">↑</button>
 <footer>メゾンパラボラ／ログ保管庫の Discord より</footer>
@@ -411,7 +414,7 @@ const snap=()=>({view,sort,q,who,aorder});
 const hurl=()=>view==='home'?location.pathname:'#'+view;
 function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
-function goView(v){navSave();view=v;render();window.scrollTo(0,0);navPush();if(v==='home')poll(true)}
+function goView(v){navSave();view=v;if(v==='home'&&PEND){RC=PEND;PEND=null}showNew(0);render();window.scrollTo(0,0);navPush();if(v==='home')poll(true)}
 function jumpTopic(ti,rep){if(!rep)navSave();view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
   render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){const nv=document.querySelector('nav.tabs');window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-(nv?nv.offsetHeight:0)-33-12);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 let lastOmi=null;
@@ -451,8 +454,16 @@ function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').for
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const mb_=e.target.closest('.mn');if(mb_){e.preventDefault();toggleMinus(mb_);return}const tx_=e.target.closest('.ans li .txt');const li=tx_&&tx_.closest('.ans li');if(li&&!e.target.closest('a,button,.st')&&!document.getElementById('shot').contains(li)&&!(window.getSelection&&String(getSelection()).length)&&!window._moved){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
 let SV=-1,lastAct=Date.now(),polling=false;
 ['pointerdown','keydown','scroll','touchstart'].forEach(ev=>addEventListener(ev,()=>{const idle=Date.now()-lastAct>180000;lastAct=Date.now();if(idle&&view==='home')poll(true)},{passive:true}));
-function applyState(j){if(!j||j.error)return;const ch=j.v!==SV;SV=j.v;LK=j.likes||{};MK=j.minus||{};RC=j.recent||[];
-  if(document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}else{Object.keys(LK).forEach(paintLikes);Object.keys(MK).forEach(paintMinus)}}
+let PEND=null;
+function showNew(n){const b=document.getElementById('newPill');if(!b)return;if(n>0&&view==='home'){b.textContent='新しい評価 '+n+'件 ・ タップで表示';b.hidden=false}else b.hidden=true}
+function applyNew(){if(!PEND)return;RC=PEND;PEND=null;showNew(0);render();window.scrollTo({top:0,behavior:'smooth'})}
+function applyState(j){if(!j||j.error)return;const first=RC===null;
+  const ids=new Set([...Object.keys(LK),...Object.keys(j.likes||{}),...Object.keys(MK),...Object.keys(j.minus||{})]);
+  SV=j.v;LK=j.likes||{};MK=j.minus||{};ids.forEach(id=>{paintLikes(id);paintMinus(id)});
+  const nr=j.recent||[];
+  if(first||view!=='home'){RC=nr;PEND=null;showNew(0);if(first&&view==='home')render();return}
+  const shown=new Set((RC||[]).map(r=>r[0]+':'+r[1]));const n=nr.filter(r=>!shown.has(r[0]+':'+r[1])).length;
+  if(n>0){PEND=nr;showNew(n)}}
 async function loadState(){try{applyState(await fetch(API+'/state',{cache:'no-store'}).then(r=>r.json()))}catch(e){RC=RC||[];if(view==='home')render()}}
 async function poll(force){if(polling)return;if(!force&&(document.hidden||Date.now()-lastAct>180000))return;polling=true;
   try{const j=await fetch(API+'/ver',{cache:'no-store'}).then(r=>r.json());if(j&&typeof j.v==='number'&&j.v!==SV)await loadState()}catch(e){}polling=false}
@@ -582,7 +593,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     ul.insertAdjacentHTML('beforeend',ans.slice(LIMIT).map(a=>liHTML(a,best,false)).join(''));b.remove();
   });
 }
-const goHome=()=>{document.getElementById('panel').hidden=true;if(view==='home'){window.scrollTo(0,0);return}goView('home')};
+const goHome=()=>{document.getElementById('panel').hidden=true;if(view==='home'){if(PEND)applyNew();else window.scrollTo(0,0);return}goView('home')};
 
 document.getElementById('shot').addEventListener('click',e=>{if(e.target.id==='shot')closeShot()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShot()});
 function goBack(){if(!document.getElementById('shot').hidden){closeShot();return true}if(history.state&&history.state.d>0){history.back();return true}return false}
@@ -595,9 +606,10 @@ document.addEventListener('touchend',e=>{if(tx===null)return;const t=e.changedTo
   new IntersectionObserver(es=>{const on=!es[0].isIntersecting;mi.classList.toggle('show',on);document.body.classList.toggle('minion',on)}).observe(he);
   mi.addEventListener('click',e=>{if(e.target.closest('#miniOmi'))return;goHome()});
   document.getElementById('miniOmi').onclick=()=>document.getElementById('omiTop').click()})();
+document.getElementById('newPill').onclick=applyNew;
 document.getElementById('hero').addEventListener('click',e=>{if(e.target.closest('#omiTop'))return;goHome()});
 document.getElementById('omiTop').onclick=()=>{if(view!=='omikuji')goView('omikuji');const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(view!==b.dataset.v)goView(b.dataset.v);window.scrollTo({top:0,behavior:view==='home'?'smooth':'auto'})});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(view!==b.dataset.v)goView(b.dataset.v);else if(view==='home'&&PEND){applyNew();return}window.scrollTo({top:0,behavior:view==='home'?'smooth':'auto'})});
 let tm;const qEl=document.getElementById('q');
 const qDone=()=>{qEl.value=qEl.value.replace(/[ \u3000]+$/,'');clearTimeout(tm);q=qEl.value.trim();render();qEl.blur()};
 qEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();qDone()}});
