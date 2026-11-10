@@ -224,7 +224,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 .shot-act button{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer}
 .shot-img{display:block;width:100%;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,.08)}.shot-hint{text-align:center;font-size:12px;color:var(--sub);margin:12px 0 0}.shot-act .shot-cp{background:var(--yellow);border-color:var(--yellow);font-weight:600}.shot-act a{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 16px;text-decoration:none}
 .shot-act .shot-x{background:var(--ink);border-color:var(--ink);color:#fff}
-.timg{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}.timg a{display:block;flex:1 1 0;min-width:0;max-width:100%}.timg img{display:block;width:100%;max-height:420px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
+.timg{margin:10px 0 4px}.timg img{display:block;width:100%;max-height:420px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid var(--line)}
 .aimg{display:block;margin:4px 0 2px}.aimg img{display:block;max-width:100%;max-height:340px;border-radius:8px;border:1px solid var(--line);background:#fff}
 .lkc{display:flex;flex-direction:column;align-items:center;gap:6px}
 .mn{font:inherit;font-size:20px;line-height:1;width:1.6em;height:1.6em;border:1.5px solid var(--line);border-radius:999px;background:#fff;color:#2f5d8a;cursor:pointer;padding:0}
@@ -238,6 +238,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 .mini .mo{font:inherit;font-size:11px;font-weight:600;background:var(--yellow);color:var(--ink);border:0;border-radius:999px;padding:2px 10px;cursor:pointer}
 body.minion nav.tabs{top:33px}
 .kdl{color:#FF3400;font-weight:600}.kdm{color:#2f5d8a;font-weight:600}
+.oseg{margin-top:-6px}.oth{width:44px;height:44px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px;border:1px solid var(--line)}.otag{display:inline-block;margin-left:6px;font-size:10.5px;color:var(--sub);border:1px solid var(--line);border-radius:999px;padding:0 6px}
 </style>
 </head>
 <body>
@@ -294,6 +295,7 @@ const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","蔵蔵":"#009944",
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
+let oimg=false;
 let view=({"#home":"home","#ogiri":"ogiri","#odai":"odai","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"home", q="", who=null, sort="old", aorder="post";
 
 function hl(s){s=esc(s);if(!q)return s;const k=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return s.replace(new RegExp(k,'gi'),m=>'<mark>'+m+'</mark>')}
@@ -317,7 +319,7 @@ function wrapT(c,txt,w){const out=[];String(txt).split('\n').forEach(p=>{let lin
 const loadI=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
 async function makePng(a,x){
   const W=1080,P=72,IW=W-P*2-80,cv=document.createElement('canvas'),c=cv.getContext('2d');
-  const tI=x.img?await Promise.all(x.img.map(f=>loadI(IMG+f))):[];const aI=a[5]?await loadI(IMG+a[5]):null;
+  const tI=x.img?[await loadI(IMG+x.img[0])]:[];const aI=a[5]?await loadI(IMG+a[5]):null;
   const Q=34,A=60,M=26;
   c.font=`700 ${Q}px ${FF}`;const ql=wrapT(c,x.q,IW-28);
   c.font=`500 ${A}px ${FF}`;const al=a[1]?wrapT(c,a[1],IW):[];
@@ -424,8 +426,9 @@ try{UID=localStorage.getItem('mp_uid')||'';if(!UID){UID=Array.from(crypto.getRan
 let RC=null;let MK={};let MYM=new Set();try{MYM=new Set(JSON.parse(localStorage.getItem('mp_minus')||'[]'))}catch(e){}
 function saveMyM(){try{localStorage.setItem('mp_minus',JSON.stringify([...MYM]))}catch(e){}}
 const IMG='img/';
-const timg=x=>x&&x.img?`<div class="timg">${x.img.map(f=>`<a href="${IMG}${f}" target="_blank" rel="noopener"><img src="${IMG}${f}" loading="lazy" alt="お題の画像"></a>`).join('')}</div>`:'';
-const aimg=a=>a[5]?`<a class="aimg" href="${IMG}${a[5]}" target="_blank" rel="noopener"><img src="${IMG}${a[5]}" loading="lazy" alt="画像の回答"></a>`:'';
+const timg=x=>x&&x.img?`<div class="timg"><img src="${IMG}${x.img[0]}" loading="lazy" alt="お題の画像"></div>`:'';
+const aimg=a=>a[5]?`<span class="aimg"><img src="${IMG}${a[5]}" loading="lazy" alt="画像の回答"></span>`:'';
+const hasImg=x=>!!(x.img||x.ans.some(a=>a[5]));
 const likes=a=>LK[a[4]]||0;
 const mlikes=a=>MK[a[4]]||0;
 const SC=a=>(a[2]||0)-(a[3]||0)+likes(a)*2-mlikes(a)*2;
@@ -530,15 +533,16 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     html=likeHome();cnt=1;
   }else if(view==='odai'){
     let cur='';
-    html+=`<div class="rankseg seg kseg"><button data-k="old" class="${sort==='old'?'on':''}">古い順</button><button data-k="new" class="${sort==='new'?'on':''}">新しい順</button><button data-k="count" class="${sort==='count'?'on':''}">回答が多い順</button></div>`;
+    html+=`<div class="rankseg seg kseg"><button data-k="old" class="${sort==='old'?'on':''}">古い順</button><button data-k="new" class="${sort==='new'?'on':''}">新しい順</button><button data-k="count" class="${sort==='count'?'on':''}">回答が多い順</button></div><div class="rankseg seg oseg"><button data-oi="0" class="${!oimg?'on':''}">すべてのお題</button><button data-oi="1" class="${oimg?'on':''}">画像お題</button></div>`;
     const OL=D.topics.map((x,i)=>[x,i]);
     (sort==='new'?OL.reverse():sort==='count'?OL.sort((a,b)=>b[0].ans.length-a[0].ans.length||a[1]-b[1]):OL).forEach(([x,i])=>{
       if(who&&x.by!==who)return;
+      if(oimg&&!hasImg(x))return;
       if(ql&&!x.q.toLowerCase().includes(ql))return;
       const y=sort==='count'?'all':x.d.slice(0,4);
       if(y!==cur){if(cur)html+='</div>';cur=y;if(y!=='all'){years.push(y);html+=`<div class="yearhead" id="y${y}"><h2>${y}</h2></div>`}else html+='<div style="height:8px"></div>';html+='<div class="olist">'}
       cnt++;
-      html+=`<a class="oi" href="#ogiri" data-t="${i}"><span class="od">${sort==='count'?fmt(x.d).slice(2):fmt(x.d).slice(5)}</span><span class="oq">${hl(x.q)}</span><span class="oc">${x.ans.length}</span></a>`;
+      html+=`<a class="oi" href="#ogiri" data-t="${i}"><span class="od">${sort==='count'?fmt(x.d).slice(2):fmt(x.d).slice(5)}</span><span class="oq">${x.img?`<img class="oth" src="${IMG}${x.img[0]}" loading="lazy" alt="">`:''}${hl(x.q)}${!x.img&&hasImg(x)?'<small class="otag">絵・画像で回答</small>':''}</span><span class="oc">${x.ans.length}</span></a>`;
     });
     if(cur)html+='</div>';
   }else if(view==='omikuji'){
@@ -565,6 +569,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   list.querySelectorAll('.oi').forEach(el=>el.onclick=e=>{e.preventDefault();jumpTopic(+el.dataset.t)});
   const rs=document.getElementById('reshuf');if(rs)rs.onclick=()=>{SH=null;render()};
   list.querySelectorAll('.kseg button').forEach(b=>b.onclick=()=>{sort=b.dataset.k;render();window.scrollTo(0,0)});
+  list.querySelectorAll('.oseg button').forEach(b=>b.onclick=()=>{oimg=b.dataset.oi==='1';render();window.scrollTo(0,0)});
   const ob=document.getElementById('omiBtn');if(ob){ob.onclick=drawOmikuji;if(lastOmi)showOmi(lastOmi)}
   list.querySelectorAll('.rankseg:not(.kseg) button').forEach(b=>b.onclick=()=>{rmode=b.dataset.r;render();window.scrollTo(0,0)});
   list.querySelectorAll('.more').forEach(b=>b.onclick=()=>{
