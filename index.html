@@ -367,12 +367,13 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.getElementById('filters').style.display=(view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('menuBtn').style.display=view==='home'?'none':'';
   document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
-  document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp')?'none':'flex';
+  document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp'||sort==='count')?'none':'flex';
   document.getElementById('sortSeg').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('sStamp').style.display=view==='kikaku'?'':'none';
   document.getElementById('sRand').style.display=view==='ogiri'?'':'none';
   if(view!=='kikaku'&&sort==='stamp')sort='old';
   if(view!=='ogiri'&&sort==='random')sort='old';
+  if(view!=='odai'&&sort==='count')sort='old';
   document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',b.dataset.s===sort));
   const list=document.getElementById('list'), yrs=document.getElementById('years');
   const ql=q.toLowerCase();
@@ -419,13 +420,15 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     html=homeHTML();cnt=1;
   }else if(view==='odai'){
     let cur='';
-    (sort==='new'?D.topics.map((x,i)=>[x,i]).reverse():D.topics.map((x,i)=>[x,i])).forEach(([x,i])=>{
+    html+=`<div class="rankseg seg kseg"><button data-k="old" class="${sort==='old'?'on':''}">古い順</button><button data-k="new" class="${sort==='new'?'on':''}">新しい順</button><button data-k="count" class="${sort==='count'?'on':''}">回答が多い順</button></div>`;
+    const OL=D.topics.map((x,i)=>[x,i]);
+    (sort==='new'?OL.reverse():sort==='count'?OL.sort((a,b)=>b[0].ans.length-a[0].ans.length||a[1]-b[1]):OL).forEach(([x,i])=>{
       if(who&&x.by!==who)return;
       if(ql&&!x.q.toLowerCase().includes(ql))return;
-      const y=x.d.slice(0,4);
-      if(y!==cur){if(cur)html+='</div>';cur=y;years.push(y);html+=`<div class="yearhead" id="y${y}"><h2>${y}</h2></div><div class="olist">`}
+      const y=sort==='count'?'all':x.d.slice(0,4);
+      if(y!==cur){if(cur)html+='</div>';cur=y;if(y!=='all'){years.push(y);html+=`<div class="yearhead" id="y${y}"><h2>${y}</h2></div>`}else html+='<div style="height:8px"></div>';html+='<div class="olist">'}
       cnt++;
-      html+=`<a class="oi" href="#ogiri" data-t="${i}"><span class="od">${fmt(x.d).slice(5)}</span><span class="oq">${hl(x.q)}</span><span class="oc">${x.ans.length}</span></a>`;
+      html+=`<a class="oi" href="#ogiri" data-t="${i}"><span class="od">${sort==='count'?fmt(x.d).slice(2):fmt(x.d).slice(5)}</span><span class="oq">${hl(x.q)}</span><span class="oc">${x.ans.length}</span></a>`;
     });
     if(cur)html+='</div>';
   }else if(view==='omikuji'){
