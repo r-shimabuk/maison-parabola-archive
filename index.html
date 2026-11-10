@@ -573,7 +573,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   list.querySelectorAll('.kseg button').forEach(b=>b.onclick=()=>{sort=b.dataset.k;render();window.scrollTo(0,0)});
   list.querySelectorAll('.oseg button').forEach(b=>b.onclick=()=>{oimg=b.dataset.oi==='1';render();window.scrollTo(0,0)});
   const ob=document.getElementById('omiBtn');if(ob){ob.onclick=drawOmikuji;if(lastOmi)showOmi(lastOmi)}
-  list.querySelectorAll('.rankseg:not(.kseg) button').forEach(b=>b.onclick=()=>{rmode=b.dataset.r;render();window.scrollTo(0,0)});
+  list.querySelectorAll('.rankseg:not(.kseg):not(.oseg) button').forEach(b=>b.onclick=()=>{rmode=b.dataset.r;render();window.scrollTo(0,0)});
   list.querySelectorAll('.more').forEach(b=>b.onclick=()=>{
     const t=D.topics[+b.dataset.t];const ul=b.previousElementSibling;
     const best=Math.max(0,...t.ans.map(SC));let ans=t.ans;if(aorder==='score')ans=ans.map((a,i)=>[a,i]).sort((x,y)=>SC(y[0])-SC(x[0])||x[1]-y[1]).map(x=>x[0]);
