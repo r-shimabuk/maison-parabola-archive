@@ -15,7 +15,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
   line-height:1.8;-webkit-font-smoothing:antialiased}
 .wrap{max-width:780px;margin:0 auto;padding:0 20px}
-header.hero{background:var(--ink);color:#fff;padding:26px 0 18px;position:relative;overflow:hidden}
+header.hero{cursor:pointer;background:var(--ink);color:#fff;padding:26px 0 18px;position:relative;overflow:hidden}
 .hero .stripe{position:absolute;inset:0 0 auto 0;height:5px;display:flex}
 .hero .stripe i{flex:1}
 .hero h1{font-size:clamp(30px,7vw,52px);line-height:1.3;margin:0 0 8px;font-weight:700;letter-spacing:0}
@@ -116,6 +116,36 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .omi-btn{font:inherit;font-size:14px;font-weight:600;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:9px 28px;cursor:pointer;margin:0 0 14px;min-width:11em}
 #omiCard{min-height:60vh}
 .omi-btn:active{transform:scale(.97)}
+.home{padding:22px 0 10px}
+.h-lead{font-size:12px;color:var(--sub);letter-spacing:.08em;font-variant-numeric:tabular-nums;margin-bottom:10px}
+.h-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+.h-main{grid-template-columns:repeat(2,1fr)}
+.hs{background:var(--card);border-radius:12px;padding:14px 16px 12px;box-shadow:0 1px 0 var(--line)}
+.hs b{display:block;font-size:30px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.h-main .hs b{font-size:44px}
+.hs span{font-size:11.5px;color:var(--sub)}
+.home h4{font-size:13px;font-weight:600;margin:30px 0 10px;color:var(--ink)}
+.h-bars{background:var(--card);border-radius:12px;padding:12px 16px;box-shadow:0 1px 0 var(--line)}
+.hb{display:grid;grid-template-columns:6.5em 1fr 4em;gap:4px 10px;align-items:center;padding:5px 0;font-variant-numeric:tabular-nums}
+.hb .y{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar2{height:10px;background:#efece4;border-radius:5px;overflow:hidden}
+.bar2 i{display:block;height:100%;background:var(--ink);border-radius:5px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.hb .v{font-size:14px;font-weight:600;text-align:right}
+.hb .sub{grid-column:2/4;font-size:10.5px;color:var(--sub);margin-top:-4px}
+.h-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;background:var(--card);border-radius:12px;padding:14px 12px 10px;box-shadow:0 1px 0 var(--line);text-align:center}
+.h-week .col{display:flex;align-items:flex-end;height:90px;background:#f3f1ea;border-radius:6px;overflow:hidden}
+.h-week .col i{display:block;width:100%;background:var(--blue);transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.h-week b{display:block;font-size:11px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.h-week div>span:last-child{font-size:11px;color:var(--sub)}
+.h-rec{display:grid;gap:10px}
+.h-rec>div{background:var(--card);border-radius:12px;padding:12px 16px;box-shadow:0 1px 0 var(--line)}
+.h-rec span{display:block;font-size:11px;color:var(--sub)}
+.h-rec b{display:block;font-size:17px;font-weight:600;margin:2px 0;white-space:pre-line;word-break:break-word}
+.h-rec em{font-style:normal;font-size:11.5px;color:var(--sub)}
+.h-go{display:flex;gap:10px;justify-content:center;margin:30px 0 0}
+.h-go button{font:inherit;font-size:14px;font-weight:600;border-radius:999px;padding:9px 22px;cursor:pointer;border:1.5px solid var(--ink);background:#fff;color:var(--ink)}
+.h-go button:first-child{background:var(--ink);color:#fff}
+@media (max-width:520px){.h-main .hs b{font-size:34px}.hs b{font-size:24px}.h-grid{grid-template-columns:repeat(2,1fr)}}
 .rankhead{font-size:13px;color:var(--sub);margin:12px 0 14px}
 .empty{color:var(--sub);text-align:center;padding:60px 0}
 .intro{font-size:13px;color:var(--sub);margin:14px 0 0}
@@ -148,7 +178,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 </style>
 </head>
 <body>
-<header class="hero">
+<header class="hero" id="hero" role="button" tabindex="0" aria-label="メインページへ">
   <div class="stripe"><i style="background:var(--blue)"></i><i style="background:var(--red)"></i><i style="background:var(--green)"></i><i style="background:var(--yellow)"></i></div>
   <div class="wrap">
     <h1><span>MAISON PARABOLA ARCHIVE</span></h1>
@@ -190,7 +220,7 @@ const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","蔵蔵":"#009944",
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
-let view=({"#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"ogiri", q="", who=null, sort="old", aorder="post";
+let view=({"#ogiri":"ogiri","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"home", q="", who=null, sort="old", aorder="post";
 document.getElementById('s-topic').textContent=D.topics.length.toLocaleString();
 document.getElementById('s-ans').textContent=D.topics.reduce((s,t)=>s+t.ans.length,0).toLocaleString();
 document.getElementById('s-kk').textContent=D.kikaku.length.toLocaleString();
@@ -203,6 +233,60 @@ function renderFilters(){
   f.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{who=who===b.dataset.n?null:b.dataset.n;render()});
 }
 const LIMIT=12;
+
+function homeHTML(){
+  const T=D.topics,K=D.kikaku;const A=[];T.forEach((t,ti)=>t.ans.forEach(a=>A.push([a,t])));
+  const N=x=>x.toLocaleString();
+  const plus=A.reduce((s,[a])=>s+(a[2]||0),0),minus=A.reduce((s,[a])=>s+(a[3]||0),0),kst=K.reduce((s,k)=>s+(k.st||0),0);
+  const chars=A.reduce((s,[a])=>s+[...a[1]].length,0);
+  const people=new Set(A.map(([a])=>a[0]).concat(K.map(k=>k.by)));
+  const days=new Set(T.map(t=>t.d));
+  const first=T[0].d,last=T[T.length-1].d;
+  const span=Math.round((new Date(last)-new Date(first))/864e5);
+  const stamped=A.filter(([a])=>(a[2]||0)>0).length;
+  const yrs={};T.forEach(t=>{const y=t.d.slice(0,4);yrs[y]=yrs[y]||{t:0,a:0};yrs[y].t++;yrs[y].a+=t.ans.length});
+  const kyrs={};K.forEach(k=>{const y=k.d.slice(0,4);kyrs[y]=(kyrs[y]||0)+1});
+  const allY=[...new Set(Object.keys(yrs).concat(Object.keys(kyrs)))].sort();
+  const maxA=Math.max(...Object.values(yrs).map(v=>v.a));
+  const byDay={};T.forEach(t=>byDay[t.d]=(byDay[t.d]||0)+t.ans.length);
+  const bestDay=Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0];
+  const mostT=[...T].sort((a,b)=>b.ans.length-a.ans.length)[0];
+  const longest=[...A].sort((x,y)=>[...y[0][1]].length-[...x[0][1]].length)[0];
+  const shortest=A.filter(([a])=>[...a[1]].length<=3).length;
+  const best=[...A].sort((x,y)=>SC(y[0])-SC(x[0]))[0];
+  const pc={};A.forEach(([a])=>pc[a[0]]=(pc[a[0]]||0)+1);
+  const pArr=Object.entries(pc).sort((a,b)=>b[1]-a[1]);
+  const oc={};T.forEach(t=>oc[t.by]=(oc[t.by]||0)+1);const topOdai=Object.entries(oc).sort((a,b)=>b[1]-a[1])[0];
+  const kc={};K.forEach(k=>kc[k.by]=(kc[k.by]||0)+1);const topK=Object.entries(kc).sort((a,b)=>b[1]-a[1])[0];
+  const wd=['日','月','火','水','木','金','土'];const wc=[0,0,0,0,0,0,0];T.forEach(t=>wc[new Date(t.d+'T00:00:00').getDay()]+=t.ans.length);
+  const maxW=Math.max(...wc);
+  const big=(n,l,c)=>`<div class="hs"><b data-n="${n}"${c?` style="color:${c}"`:''}>${N(n)}</b><span>${l}</span></div>`;
+  return `<section class="home">
+  <div class="h-lead">${first.replace(/-/g,'.')} — ${last.replace(/-/g,'.')}</div>
+  <div class="h-grid h-main">${big(T.length,'お題','var(--blue)')}${big(A.length,'回答','var(--red)')}${big(K.length,'企画','var(--green)')}${big(plus+kst,'スタンプ','#B98F00')}</div>
+  <div class="h-grid">${big(people.size,'参加した人')}${big(days.size,'大喜利をした日')}${big(span,'最初から最後までの日数')}${big(chars,'回答の総文字数')}${big(Math.round(A.length/T.length*10)/10,'1お題あたりの回答')}${big(stamped,'スタンプが付いた回答')}${big(minus,'マイナスのスタンプ')}${big(kst,'企画に付いたスタンプ')}${big(shortest,'3文字以内の回答')}</div>
+  <h4>年ごとの回答数</h4>
+  <div class="h-bars">${allY.map(y=>{const v=yrs[y]||{t:0,a:0};return `<div class="hb"><span class="y">${y}</span><span class="bar2"><i style="width:${(v.a/maxA*100).toFixed(1)}%"></i></span><span class="v">${N(v.a)}</span><span class="sub">お題 ${v.t}・企画 ${kyrs[y]||0}</span></div>`}).join('')}</div>
+  <h4>人ごとの回答数</h4>
+  <div class="h-bars">${pArr.map(([n,v])=>`<div class="hb"><span class="y" style="color:${col(n)}">${esc(n)}</span><span class="bar2"><i style="width:${(v/pArr[0][1]*100).toFixed(1)}%;background:${col(n)}"></i></span><span class="v">${N(v)}</span><span class="sub">${(v/A.length*100).toFixed(1)}%</span></div>`).join('')}</div>
+  <h4>曜日ごとの回答数</h4>
+  <div class="h-week">${wc.map((v,i)=>`<div><span class="col"><i style="height:${(v/maxW*100).toFixed(1)}%"></i></span><b>${N(v)}</b><span>${wd[i]}</span></div>`).join('')}</div>
+  <h4>記録</h4>
+  <div class="h-rec">
+    <div><span>いちばん回答が集まったお題</span><b>${esc(mostT.q)}</b><em>${mostT.ans.length}回答・${mostT.d.replace(/-/g,'.')}</em></div>
+    <div><span>いちばん回答が多かった日</span><b>${bestDay[0].replace(/-/g,'.')}</b><em>${N(bestDay[1])}回答</em></div>
+    <div><span>いちばん評価された回答</span><b>${esc(best[0][1])}</b><em>${esc(best[0][0])}・評価 ${SC(best[0])}・お題「${esc(best[1].q.slice(0,40))}」</em></div>
+    <div><span>いちばん長い回答</span><b>${[...longest[0][1]].length}文字</b><em>${esc(longest[0][0])}・${longest[1].d.replace(/-/g,'.')}</em></div>
+    <div><span>いちばんお題を出した人</span><b>${esc(topOdai[0])}</b><em>${topOdai[1]}お題</em></div>
+    <div><span>いちばん企画を出した人</span><b>${esc(topK[0])}</b><em>${topK[1]}企画</em></div>
+  </div>
+  <div class="h-go"><button data-go="ogiri">大喜利を読む</button><button data-go="omikuji">おみくじを引く</button></div>
+  </section>`;
+}
+function countUp(){document.querySelectorAll('.hs b[data-n]').forEach(el=>{const n=+el.dataset.n;const dec=n%1!==0;const t0=performance.now();const d=1100;
+  const f=now=>{const p=Math.min(1,(now-t0)/d);const e=1-Math.pow(1-p,3);el.textContent=dec?(n*e).toFixed(1):Math.round(n*e).toLocaleString();if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)});
+  document.querySelectorAll('.h-bars i,.h-week i').forEach(i=>{const w=i.style.width,h=i.style.height;if(w){i.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=w))}if(h){i.style.height='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.height=h))}})}
+
 let lastOmi=null;
 function fortune(sc){return sc>=8?['大吉','#B98F00']:sc>=4?['中吉','#FF3400']:sc>=2?['小吉','#009944']:sc>=1?['吉','#0086F1']:sc===0?['末吉','#6b6a66']:['凶','#2f5d8a']}
 function drawOmikuji(){const t=D.topics[Math.floor(Math.random()*D.topics.length)];const a=t.ans[Math.floor(Math.random()*t.ans.length)];lastOmi=[t,a];showOmi(lastOmi)}
@@ -225,10 +309,11 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.querySelectorAll('#ansSeg button').forEach(b=>b.classList.toggle('on',b.dataset.a===aorder));
   document.getElementById('menuBtn').innerHTML='メニュー'+((who||sort!=='old'||aorder!=='post')?'<span class="dot"></span>':'');
   document.getElementById('ansSeg').style.display=view==='ogiri'?'flex':'none';
-  document.getElementById('filters').style.display=view==='omikuji'?'none':'flex';
+  document.getElementById('filters').style.display=(view==='omikuji'||view==='home')?'none':'flex';
+  document.getElementById('menuBtn').style.display=view==='home'?'none':'';
   document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
-  document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||sort==='random'||sort==='stamp')?'none':'flex';
-  document.getElementById('sortSeg').style.display=(view==='rank'||view==='member'||view==='omikuji')?'none':'flex';
+  document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp')?'none':'flex';
+  document.getElementById('sortSeg').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('sStamp').style.display=view==='kikaku'?'':'none';
   document.getElementById('sRand').style.display=view==='ogiri'?'':'none';
   if(view!=='kikaku'&&sort==='stamp')sort='old';
@@ -275,6 +360,8 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     const yrs=[...new Set(D.topics.map(t=>t.d.slice(0,4)))].sort();
     html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.minus?`<span>マイナス −${m.minus}</span>`:''}<span>1回答あたり評価 ${((m.plus-m.minus)/m.ans).toFixed(2)}</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（評価 ${SC(m.best[0])}）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
+  }else if(view==='home'){
+    html=homeHTML();cnt=1;
   }else if(view==='omikuji'){
     html=`<div class="omi"><div class="omi-lbl">大喜利おみくじ</div><p class="omi-sub">${D.topics.reduce((x,t)=>x+t.ans.length,0).toLocaleString()}回答の中から、お題と答えをひとつ引きます</p><button class="omi-btn" id="omiBtn">おみくじを引く</button><div id="omiCard"></div></div>`;
     cnt=1;
@@ -295,6 +382,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   yrs.innerHTML=years.map(y=>`<a href="#y${y}" data-y="${y}">${y}</a>`).join('');
   yrs.querySelectorAll('a').forEach(a=>a.onclick=e=>{e.preventDefault();setMenu(false);const el=document.getElementById('y'+a.dataset.y);requestAnimationFrame(()=>el.scrollIntoView())});
   list.innerHTML=html||'<div class="empty">見つかりませんでした</div>';
+  if(view==='home'){countUp();list.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{view=b.dataset.go;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()})}
   const rs=document.getElementById('reshuf');if(rs)rs.onclick=()=>{SH=null;render()};
   list.querySelectorAll('.kseg button').forEach(b=>b.onclick=()=>{sort=b.dataset.k;render();window.scrollTo(0,0)});
   const ob=document.getElementById('omiBtn');if(ob){ob.onclick=drawOmikuji;if(lastOmi)showOmi(lastOmi)}
@@ -305,6 +393,8 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     ul.insertAdjacentHTML('beforeend',ans.slice(LIMIT).map(a=>liHTML(a,best,false)).join(''));b.remove();
   });
 }
+const goHome=()=>{view='home';try{history.replaceState(null,'',location.pathname)}catch(e){};window.scrollTo(0,0);render()};
+document.getElementById('hero').onclick=goHome;document.getElementById('hero').onkeydown=e=>{if(e.key==='Enter')goHome()};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
 let tm;document.getElementById('q').addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
