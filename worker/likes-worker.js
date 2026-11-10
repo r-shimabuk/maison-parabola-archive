@@ -15,6 +15,10 @@ export default {
       const counts = (await env.LIKES.get("counts", "json")) || {};
       return json(counts);
     }
+    if (req.method === "GET" && url.pathname === "/recent") {
+      const recent = (await env.LIKES.get("recent", "json")) || [];
+      return json(recent);
+    }
     if (req.method === "POST" && url.pathname === "/like") {
       let b;
       try { b = await req.json(); } catch { return json({ error: "bad json" }, 400); }
@@ -32,6 +36,15 @@ export default {
         counts[id] = (counts[id] || 0) + 1;
       }
       await env.LIKES.put("counts", JSON.stringify(counts));
+      // 最近いいねされた順（[id, 時刻] の配列、新しい順・最大200件）
+      let recent = (await env.LIKES.get("recent", "json")) || [];
+      if (!had) {
+        recent = recent.filter((r) => r[0] !== id);
+        recent.unshift([id, Date.now()]);
+      } else if (!counts[id]) {
+        recent = recent.filter((r) => r[0] !== id);
+      }
+      await env.LIKES.put("recent", JSON.stringify(recent.slice(0, 200)));
       return json({ id, liked: !had, count: counts[id] || 0 });
     }
     return json({ error: "not found" }, 404);

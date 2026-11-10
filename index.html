@@ -210,6 +210,9 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 }
 @media (max-width:520px){.omi-top{right:14px}header.hero.big{padding:40px 0 28px}.hero.big .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}.hero.big .stats b{font-size:30px}}
 .lknote{font-size:12px;line-height:1.7;color:var(--sub);margin:18px 0 0;display:flex;gap:6px}.lknote .h{color:#FF3400;flex:none}
+.hhead{margin:26px 0 16px}.hhead h2{font-size:18px;margin:0 0 4px;font-weight:700}.hhead p{font-size:12px;color:var(--sub);margin:0}
+.hempty{font-size:14px;color:var(--sub);padding:30px 0}.hgo{font:inherit;font-size:14px;border:0;background:none;color:var(--ink);text-decoration:underline;cursor:pointer;padding:0;margin-left:6px}
+.hero h1{cursor:pointer}
 </style>
 </head>
 <body>
@@ -263,7 +266,7 @@ const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","蔵蔵":"#009944",
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
-let view=({"#ogiri":"ogiri","#odai":"odai","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"ogiri", q="", who=null, sort="old", aorder="post";
+let view=({"#home":"home","#ogiri":"ogiri","#odai":"odai","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"home", q="", who=null, sort="old", aorder="post";
 
 function hl(s){s=esc(s);if(!q)return s;const k=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return s.replace(new RegExp(k,'gi'),m=>'<mark>'+m+'</mark>')}
 function fmt(d){return d.replace(/-/g,'.')}
@@ -275,6 +278,18 @@ function renderFilters(){
 }
 const LIMIT=12;
 
+function ago(ms){if(!ms)return'';const s=(Date.now()-ms)/1000;if(s<60)return'たった今';if(s<3600)return Math.floor(s/60)+'分前';if(s<86400)return Math.floor(s/3600)+'時間前';if(s<86400*30)return Math.floor(s/86400)+'日前';const d=new Date(ms);return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')}
+let AIX=null;function ansIndex(){if(!AIX){AIX={};D.topics.forEach((x,ti)=>x.ans.forEach(a=>{if(a[4])AIX[a[4]]=[a,x,ti]}))}return AIX}
+function likeHome(){
+  const ix=ansIndex();
+  let list=(RC||[]).filter(r=>ix[r[0]]&&(LK[r[0]]||0)>0);
+  const seen=new Set(list.map(r=>r[0]));
+  Object.keys(LK).filter(id=>LK[id]>0&&ix[id]&&!seen.has(id)).forEach(id=>list.push([id,0]));
+  let h=`<div class="hhead"><h2>最近いいねされた答え</h2><p>いいねが押された新しい順に並んでいます</p></div>`;
+  if(RC===null&&!list.length)return h+`<p class="hempty">読み込み中…</p>`;
+  if(!list.length)return h+`<p class="hempty">まだいいねがありません。<button class="hgo" data-go="ogiri">大喜利を読む →</button></p>`;
+  return h+list.slice(0,100).map(([id,tm])=>{const [a,x,ti]=ix[id];return `<article class="topic"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span><span class="n">${ago(tm)}</span></div><h3 class="jump" data-t="${ti}">${hl(x.q)}<span class="go">答えをすべて見る →</span></h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`}).join('');
+}
 function homeHTML(){
   const T=D.topics,K=D.kikaku;const A=[];T.forEach((t,ti)=>t.ans.forEach(a=>A.push([a,t])));
   const N=x=>x.toLocaleString();
@@ -341,17 +356,19 @@ let SH=null;function shuffled(){if(!SH){SH=D.topics.map((t,i)=>[t,i]);for(let i=
 const API='https://maison-parabola-likes.ryuju111.workers.dev';
 let LK={};let MY=new Set();let UID='';
 try{UID=localStorage.getItem('mp_uid')||'';if(!UID){UID=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(36).padStart(2,'0')).join('').slice(0,20).replace(/[^a-z0-9]/g,'a');localStorage.setItem('mp_uid',UID)}MY=new Set(JSON.parse(localStorage.getItem('mp_liked')||'[]'))}catch(e){UID='m'+Math.random().toString(36).slice(2,14)}
+let RC=null;
 const likes=a=>LK[a[4]]||0;
 const SC=a=>(a[2]||0)-(a[3]||0)+likes(a)*2;
 const likeBtn=a=>a[4]?`<button class="lk${MY.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="いいね">${MY.has(a[4])?'♥':'♡'}</button>`:'';
 function saveMy(){try{localStorage.setItem('mp_liked',JSON.stringify([...MY]))}catch(e){}}
 async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
-  const was=MY.has(id);if(was)MY.delete(id);else MY.add(id);LK[id]=Math.max(0,(LK[id]||0)+(was?-1:1));saveMy();paintLikes(id);
+  const was=MY.has(id);if(was)MY.delete(id);else MY.add(id);if(!was&&Array.isArray(RC)){RC=RC.filter(r=>r[0]!==id);RC.unshift([id,Date.now()])}LK[id]=Math.max(0,(LK[id]||0)+(was?-1:1));saveMy();paintLikes(id);
   try{const r=await fetch(API+'/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,uid:UID})});const j=await r.json();
     if(typeof j.count==='number'){LK[id]=j.count;if(j.liked)MY.add(id);else MY.delete(id);saveMy();paintLikes(id)}}catch(e){}
   btn.disabled=false}
 function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').forEach(s=>{const n=LK[id]||0;s.textContent='いいね '+n;s.hidden=!n});document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
+fetch(API+'/recent').then(r=>r.json()).then(j=>{RC=Array.isArray(j)?j:[];if(view==='home')render()}).catch(()=>{RC=RC||[];if(view==='home')render()});
 fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
@@ -370,7 +387,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.getElementById('filters').style.display=(view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('menuBtn').style.display=view==='home'?'none':'';
   document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
-  document.getElementById('lknote').style.display=(view==='ogiri'||view==='rank')?'flex':'none';
+  document.getElementById('lknote').style.display=(view==='ogiri'||view==='rank'||view==='home')?'flex':'none';
   document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp'||sort==='count'||(view==='ogiri'&&who&&aorder==='score'))?'none':'flex';
   document.getElementById('sortSeg').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('sStamp').style.display=view==='kikaku'?'':'none';
@@ -427,7 +444,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.minus?`<span>マイナス −${m.minus}</span>`:''}<span>1回答あたり評価 ${((m.plus-m.minus)/m.ans).toFixed(2)}</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（評価 ${SC(m.best[0])}）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
   }else if(view==='home'){
-    html=homeHTML();cnt=1;
+    html=likeHome();cnt=1;
   }else if(view==='odai'){
     let cur='';
     html+=`<div class="rankseg seg kseg"><button data-k="old" class="${sort==='old'?'on':''}">古い順</button><button data-k="new" class="${sort==='new'?'on':''}">新しい順</button><button data-k="count" class="${sort==='count'?'on':''}">回答が多い順</button></div>`;
@@ -473,15 +490,16 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     ul.insertAdjacentHTML('beforeend',ans.slice(LIMIT).map(a=>liHTML(a,best,false)).join(''));b.remove();
   });
 }
-const goHome=()=>{view='home';try{history.replaceState(null,'',location.pathname)}catch(e){};window.scrollTo(0,0);render()};
+const goHome=()=>{view='home';document.getElementById('panel').hidden=true;try{history.replaceState(null,'',location.pathname)}catch(e){};window.scrollTo(0,0);render()};
 
+document.getElementById('hero').addEventListener('click',e=>{if(e.target.closest('#omiTop'))return;goHome()});
 document.getElementById('omiTop').onclick=()=>{view='omikuji';try{history.replaceState(null,'','#omikuji')}catch(e){};window.scrollTo(0,0);render();const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
 let tm;const qEl=document.getElementById('q');
 const qDone=()=>{qEl.value=qEl.value.replace(/[ \u3000]+$/,'');clearTimeout(tm);q=qEl.value.trim();render();qEl.blur()};
 qEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();qDone()}});
 qEl.addEventListener('input',e=>{if(!e.isComposing&&/[ \u3000]$/.test(qEl.value)){qDone();return}});
-qEl.addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
+qEl.addEventListener('input',e=>{if(view==='home'){view='ogiri';try{history.replaceState(null,'','#ogiri')}catch(_){}}clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
 document.querySelectorAll('#ansSeg button').forEach(b=>b.onclick=()=>{aorder=b.dataset.a;render()});
 const tt=document.getElementById('totop');
