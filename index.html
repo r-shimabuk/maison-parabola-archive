@@ -18,6 +18,9 @@ body{margin:0;background:var(--paper);color:var(--ink);
 header.hero{background:var(--ink);color:#fff;padding:26px 0 18px;position:relative;overflow:hidden}
 .hero .stripe{position:absolute;inset:0 0 auto 0;height:5px;display:flex}
 .hero .stripe i{flex:1}
+.hero .wrap{position:relative}
+.omi-top{position:absolute;right:20px;top:0;font:inherit;font-size:12.5px;font-weight:600;background:var(--yellow);color:var(--ink);border:0;border-radius:999px;padding:5px 14px;cursor:pointer}
+.omi-top.on{background:#fff}
 .hero h1{font-size:clamp(30px,7vw,52px);line-height:1.3;margin:0 0 8px;font-weight:700;letter-spacing:0}
 .hero h1 span{display:block;font-size:13px;font-weight:500;letter-spacing:.12em;color:var(--yellow);margin-bottom:0}
 .stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:8px}
@@ -204,7 +207,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   .years a{font-size:11px;padding:1px 7px;flex:none}
   .years{padding-bottom:10px}
 }
-@media (max-width:520px){header.hero.big{padding:40px 0 28px}.hero.big .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}.hero.big .stats b{font-size:30px}}
+@media (max-width:520px){.omi-top{right:14px}header.hero.big{padding:40px 0 28px}.hero.big .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}.hero.big .stats b{font-size:30px}}
 </style>
 </head>
 <body>
@@ -213,6 +216,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   <div class="stripe"><i style="background:var(--blue)"></i><i style="background:var(--red)"></i><i style="background:var(--green)"></i><i style="background:var(--yellow)"></i></div>
   <div class="wrap">
     <h1><span>MAISON PARABOLA ARCHIVE</span></h1>
+    <button class="omi-top" id="omiTop">おみくじ</button>
     <div class="stats">
       <div><b id="s-topic"></b>お題</div>
       <div><b id="s-ans"></b>回答</div>
@@ -228,7 +232,6 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   <button class="tab" data-v="rank">ランキング</button>
   <button class="tab" data-v="kikaku">企画</button>
   <button class="tab" data-v="member">メンバー</button>
-  <button class="tab" data-v="omikuji">おみくじ</button>
   </div>
   <div class="search"><input id="q" type="search" placeholder="ことばで探す" autocomplete="off"></div>
   <button class="menu" id="menuBtn" aria-expanded="false">メニュー</button>
@@ -352,6 +355,7 @@ function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
   return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li>`}
 function render(){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  document.getElementById('omiTop').classList.toggle('on',view==='omikuji');
   renderFilters();
   const mb=document.getElementById('menuBtn'),pn=document.getElementById('panel');
 function setMenu(o){pn.hidden=!o;mb.setAttribute('aria-expanded',o);mb.classList.toggle('on',o)}
@@ -458,6 +462,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
 }
 const goHome=()=>{view='home';try{history.replaceState(null,'',location.pathname)}catch(e){};window.scrollTo(0,0);render()};
 
+document.getElementById('omiTop').onclick=()=>{view='omikuji';try{history.replaceState(null,'','#omikuji')}catch(e){};window.scrollTo(0,0);render();const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
 let tm;document.getElementById('q').addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
