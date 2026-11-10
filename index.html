@@ -293,7 +293,7 @@ function ago(ms){if(!ms)return'';const s=(Date.now()-ms)/1000;if(s<60)return'た
 let AIX=null;function ansIndex(){if(!AIX){AIX={};D.topics.forEach((x,ti)=>x.ans.forEach(a=>{if(a[4])AIX[a[4]]=[a,x,ti]}))}return AIX}
 function openShot(id){const r=ansIndex()[id];if(!r)return;const [a,x,ti]=r;const s=document.getElementById('shot');
   s.innerHTML=`<div class="shot-in"><article class="topic omi-card shot-card"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span></div><h3>${esc(x.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article><div class="shot-mark">MAISON PARABOLA ARCHIVE</div><div class="shot-act"><button class="shot-go" data-t="${ti}">答えをすべて見る</button><button class="shot-x" aria-label="閉じる">閉じる</button></div></div>`;
-  s.hidden=false;document.body.style.overflow='hidden';try{history.pushState({shot:1},'')}catch(e){}s.firstChild.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
+  s.hidden=false;document.body.style.overflow='hidden';navSave();try{history.pushState({...snap(),d:((history.state||{}).d||0)+1,shot:1},'')}catch(e){}s.firstChild.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:'ease-out'});
   s.querySelector('.shot-x').onclick=()=>closeShot();s.querySelector('.shot-go').onclick=()=>{closeShot(true);jumpTopic(ti,true)}}
 function closeShot(silent){const s=document.getElementById('shot');if(s.hidden)return;if(!silent&&history.state&&history.state.shot){history.back();return}s.hidden=true;s.innerHTML='';document.body.style.overflow=''}
 function likeHome(){
@@ -359,10 +359,13 @@ function countUp(){document.querySelectorAll('.hs b[data-n]').forEach(el=>{const
   const f=now=>{const p=Math.min(1,(now-t0)/d);const e=1-Math.pow(1-p,3);el.textContent=dec?(n*e).toFixed(1):Math.round(n*e).toLocaleString();if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)});
   document.querySelectorAll('.h-bars i,.h-week i').forEach(i=>{const w=i.style.width,h=i.style.height;if(w){i.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=w))}if(h){i.style.height='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.height=h))}})}
 
-const STK=[];
-function saveNav(rep){STK.push({view,sort,q,who,aorder,y:window.scrollY});try{history[rep?'replaceState':'pushState']({nav:STK.length},'','#ogiri')}catch(e){}}
-function jumpTopic(ti,rep){saveNav(rep);view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
-  render();const el=document.getElementById('t'+ti);if(el){el.scrollIntoView({block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
+const snap=()=>({view,sort,q,who,aorder});
+const hurl=()=>view==='home'?location.pathname:'#'+view;
+function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
+function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
+function goView(v){navSave();view=v;window.scrollTo(0,0);render();navPush()}
+function jumpTopic(ti,rep){if(!rep)navSave();view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
+  render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){el.scrollIntoView({block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 let lastOmi=null;
 function fortune(sc){return sc>=8?['大吉','#B98F00']:sc>=4?['中吉','#FF3400']:sc>=2?['小吉','#009944']:sc>=1?['吉','#0086F1']:sc===0?['末吉','#6b6a66']:['凶','#2f5d8a']}
 function drawOmikuji(){const ti=Math.floor(Math.random()*D.topics.length);const t=D.topics[ti];t._i=ti;const a=t.ans[Math.floor(Math.random()*t.ans.length)];lastOmi=[t,a];showOmi(lastOmi)}
@@ -502,7 +505,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   yrs.innerHTML=years.map(y=>`<a href="#y${y}" data-y="${y}">${y}</a>`).join('');
   yrs.querySelectorAll('a').forEach(a=>a.onclick=e=>{e.preventDefault();setMenu(false);const el=document.getElementById('y'+a.dataset.y);requestAnimationFrame(()=>el.scrollIntoView())});
   list.innerHTML=html||'<div class="empty">見つかりませんでした</div>';
-  if(view==='home'){countUp();list.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{view=b.dataset.go;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()})}
+  if(view==='home'){countUp();list.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goView(b.dataset.go))}
   list.querySelectorAll('.oi').forEach(el=>el.onclick=e=>{e.preventDefault();jumpTopic(+el.dataset.t)});
   const rs=document.getElementById('reshuf');if(rs)rs.onclick=()=>{SH=null;render()};
   list.querySelectorAll('.kseg button').forEach(b=>b.onclick=()=>{sort=b.dataset.k;render();window.scrollTo(0,0)});
@@ -514,22 +517,23 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     ul.insertAdjacentHTML('beforeend',ans.slice(LIMIT).map(a=>liHTML(a,best,false)).join(''));b.remove();
   });
 }
-const goHome=()=>{view='home';document.getElementById('panel').hidden=true;try{history.replaceState(null,'',location.pathname)}catch(e){};window.scrollTo(0,0);render()};
+const goHome=()=>{document.getElementById('panel').hidden=true;if(view==='home'){window.scrollTo(0,0);return}goView('home')};
 
 document.getElementById('shot').addEventListener('click',e=>{if(e.target.id==='shot')closeShot()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShot()});
-function goBack(){if(!document.getElementById('shot').hidden){closeShot();return true}if(STK.length){history.back();return true}return false}
-window.addEventListener('popstate',()=>{const s=document.getElementById('shot');if(!s.hidden){closeShot(true);return}if(STK.length){const p=STK.pop();view=p.view;sort=p.sort;q=p.q;who=p.who;aorder=p.aorder;document.getElementById('q').value=q;render();window.scrollTo(0,p.y)}});
+function goBack(){if(!document.getElementById('shot').hidden){closeShot();return true}if(history.state&&history.state.d>0){history.back();return true}return false}
+window.addEventListener('popstate',e=>{const s=document.getElementById('shot');if(!s.hidden)closeShot(true);const p=e.state;if(!p||!p.view||p.shot)return;view=p.view;sort=p.sort;q=p.q||'';who=p.who;aorder=p.aorder;document.getElementById('q').value=q;document.getElementById('panel').hidden=true;render();window.scrollTo(0,p.y||0)});
+try{history.replaceState({...snap(),d:0},'')}catch(e){}
 let tx=null,ty=0;
 document.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('.tabrow,.seg,.years,input')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{if(tx===null)return;const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty;tx=null;if(Math.abs(dx)>80&&Math.abs(dx)>Math.abs(dy)*2)goBack()},{passive:true});
 document.getElementById('hero').addEventListener('click',e=>{if(e.target.closest('#omiTop'))return;goHome()});
-document.getElementById('omiTop').onclick=()=>{view='omikuji';try{history.replaceState(null,'','#omikuji')}catch(e){};window.scrollTo(0,0);render();const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
+document.getElementById('omiTop').onclick=()=>{if(view!=='omikuji')goView('omikuji');const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(view!==b.dataset.v)goView(b.dataset.v)});
 let tm;const qEl=document.getElementById('q');
 const qDone=()=>{qEl.value=qEl.value.replace(/[ \u3000]+$/,'');clearTimeout(tm);q=qEl.value.trim();render();qEl.blur()};
 qEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();qDone()}});
 qEl.addEventListener('input',e=>{if(!e.isComposing&&/[ \u3000]$/.test(qEl.value)){qDone();return}});
-qEl.addEventListener('input',e=>{if(view==='home'){view='ogiri';try{history.replaceState(null,'','#ogiri')}catch(_){}}clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
+qEl.addEventListener('input',e=>{if(view==='home'){navSave();view='ogiri';navPush()}clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
 document.querySelectorAll('#ansSeg button').forEach(b=>b.onclick=()=>{aorder=b.dataset.a;render()});
 const tt=document.getElementById('totop');
