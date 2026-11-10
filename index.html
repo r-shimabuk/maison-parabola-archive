@@ -173,6 +173,7 @@ header.hero.big{padding:64px 0 46px}
 .tabrow{display:flex;gap:4px;width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabrow::-webkit-scrollbar{display:none}
 .tabrow .tab{flex:none}
+.tabrow{justify-content:space-between}
 h3.jump{cursor:pointer}
 h3.jump .go{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:2px}
 h3.jump:hover .go{color:var(--ink)}
@@ -195,7 +196,8 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   .stats{gap:18px}
   .stats b{font-size:16px}
   nav.tabs .wrap{padding-top:7px;padding-bottom:7px;gap:4px}
-  .tab{font-size:13px;padding:4px 11px}
+  .tab{font-size:12.5px;padding:4px 8px;letter-spacing:-.02em}
+  .tabrow{gap:0}
   .search input{font-size:13px;padding:5px 10px}
   .menu{font-size:12px;padding:4px 10px}
   .ctrl{gap:6px 12px;padding-top:10px}
@@ -247,6 +249,7 @@ body.minion nav.tabs{top:33px}
 .mstats .mtot{font-weight:700;color:var(--ink)}
 .mline{height:4px;border-radius:2px;margin:10px 0 14px}.mstats .mavg{border:1.5px solid;border-radius:999px;padding:1px 10px;font-weight:600;font-size:12.5px;color:#3d3c38}.mavg b{font-size:16px;font-weight:700}
 .myears span.ytop{background:var(--yellow);color:var(--ink)}
+@media (max-width:380px){.tab{font-size:11.5px;padding:4px 6px}}
 </style>
 </head>
 <body>
