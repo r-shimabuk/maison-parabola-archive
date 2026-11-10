@@ -480,7 +480,7 @@ loadState();
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${a[4]?`<span class="st neg mnn" data-lid="${a[4]}"${mlikes(a)?'':' hidden'}>マイナス票 ${mlikes(a)}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
   return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li>`}
-function render(){
+function render(){if(window._posReady)setTimeout(savePos,0);
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   document.getElementById('omiTop').classList.toggle('on',view==='omikuji');
   renderFilters();
@@ -606,10 +606,11 @@ document.getElementById('shot').addEventListener('click',e=>{if(e.target.id==='s
 function goBack(){if(!document.getElementById('shot').hidden){closeShot();return true}if(history.state&&history.state.d>0){history.back();return true}return false}
 window.addEventListener('popstate',e=>{const s=document.getElementById('shot');if(!s.hidden)closeShot(true);const p=e.state;if(!p||!p.view||p.shot)return;view=p.view;sort=p.sort;q=p.q||'';who=p.who;aorder=p.aorder;document.getElementById('q').value=q;document.getElementById('panel').hidden=true;render();window.scrollTo(0,p.y||0)});
 let RESTY=0;try{history.scrollRestoration='manual'}catch(e){}
-(()=>{const s=history.state;if(s&&s.view&&!s.shot){view=s.view;sort=s.sort||sort;q=s.q||'';who=s.who||null;aorder=s.aorder||aorder;if(s.rmode)rmode=s.rmode;oimg=!!s.oimg;RESTY=s.y||0;document.getElementById('q').value=q}})();
+(()=>{let s=history.state;try{const nv=performance.getEntriesByType('navigation')[0];const ss=JSON.parse(sessionStorage.getItem('mp_pos')||'null');if(nv&&nv.type==='reload'&&ss&&ss.view)s=ss}catch(e){}if(s&&s.view&&!s.shot){view=s.view;sort=s.sort||sort;q=s.q||'';who=s.who||null;aorder=s.aorder||aorder;if(s.rmode)rmode=s.rmode;oimg=!!s.oimg;RESTY=s.y||0;document.getElementById('q').value=q}})();
 try{history.replaceState({...snap(),y:RESTY,d:(history.state&&history.state.d)||0},'',hurl())}catch(e){}
-addEventListener('pagehide',()=>{try{const c=history.state||{};if(!c.shot)history.replaceState({...c,...snap(),y:window.scrollY},'')}catch(e){}});
-let _st;addEventListener('scroll',()=>{clearTimeout(_st);_st=setTimeout(()=>{try{const c=history.state||{};if(!c.shot)history.replaceState({...c,...snap(),y:window.scrollY},'')}catch(e){}},250)},{passive:true});
+function savePos(){try{sessionStorage.setItem('mp_pos',JSON.stringify({...snap(),y:window.scrollY}))}catch(e){}}
+addEventListener('pagehide',savePos);document.addEventListener('visibilitychange',()=>{if(document.hidden)savePos()});
+let _st;addEventListener('scroll',()=>{clearTimeout(_st);_st=setTimeout(()=>{try{const c=history.state||{};if(!c.shot)history.replaceState({...c,...snap(),y:window.scrollY},'')}catch(e){}savePos()},250)},{passive:true});
 let tx=null,ty=0;window._moved=false;let _sx=0,_sy=0;document.addEventListener('touchstart',e=>{window._moved=false;_sx=e.touches[0].clientX;_sy=e.touches[0].clientY},{passive:true});document.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientX-_sx)>8||Math.abs(e.touches[0].clientY-_sy)>8)window._moved=true},{passive:true});
 document.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('.tabrow,.seg,.years,input')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{if(tx===null)return;const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty;tx=null;if(Math.abs(dx)>80&&Math.abs(dx)>Math.abs(dy)*2)goBack()},{passive:true});
@@ -632,7 +633,7 @@ document.querySelectorAll('#ansSeg button').forEach(b=>b.onclick=()=>{aorder=b.d
 const tt=document.getElementById('totop');
 addEventListener('scroll',()=>tt.classList.toggle('show',scrollY>600),{passive:true});
 tt.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-render();if(RESTY)setTimeout(()=>window.scrollTo(0,RESTY),0);
+render();window._posReady=true;if(RESTY)setTimeout(()=>window.scrollTo(0,RESTY),0);
 </script>
 </body>
 </html>
