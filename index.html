@@ -421,7 +421,7 @@ const snap=()=>({view,sort,q,who,aorder,rmode,oimg});
 const hurl=()=>view==='home'?location.pathname:'#'+view;
 function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
-function goView(v){navSave();view=v;if(v==='home'&&PEND){RC=PEND;PEND=null}showNew(0);render();window.scrollTo(0,0);navPush();if(v==='home')poll(true)}
+function goView(v){navSave();view=v;if(v==='home'){q='';document.getElementById('q').value=''}if(v==='home'&&PEND){RC=PEND;PEND=null}showNew(0);render();window.scrollTo(0,0);navPush();if(v==='home')poll(true)}
 function jumpTopic(ti,rep){if(!rep)navSave();view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
   render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){const nv=document.querySelector('nav.tabs');window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-(nv?nv.offsetHeight:0)-33-12);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 let lastOmi=null;
@@ -468,7 +468,7 @@ function applyState(j){if(!j||j.error)return;const first=RC===null;
   const ids=new Set([...Object.keys(LK),...Object.keys(j.likes||{}),...Object.keys(MK),...Object.keys(j.minus||{})]);
   SV=j.v;LK=j.likes||{};MK=j.minus||{};ids.forEach(id=>{paintLikes(id);paintMinus(id)});
   const nr=j.recent||[];
-  if(first||view!=='home'){RC=nr;PEND=null;showNew(0);if(first&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}return}
+  if(first||view!=='home'){RC=nr;PEND=null;showNew(0);if(first&&document.getElementById('shot').hidden){const y=RESTY||window.scrollY;RESTY=0;render();window.scrollTo(0,y)}return}
   const shown=new Set((RC||[]).map(r=>r[0]+':'+r[1]));const n=nr.filter(r=>!shown.has(r[0]+':'+r[1])).length;
   if(n>0){PEND=nr;if(window.scrollY<250&&document.getElementById('shot').hidden){RC=PEND;PEND=null;showNew(0);render()}else showNew(n)}}
 async function loadState(){try{applyState(await fetch(API+'/state',{cache:'no-store'}).then(r=>r.json()))}catch(e){RC=RC||[];if(view==='home')render()}}
