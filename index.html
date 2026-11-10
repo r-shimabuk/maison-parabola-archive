@@ -411,7 +411,7 @@ const snap=()=>({view,sort,q,who,aorder});
 const hurl=()=>view==='home'?location.pathname:'#'+view;
 function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
-function goView(v){navSave();view=v;render();window.scrollTo(0,0);navPush()}
+function goView(v){navSave();view=v;render();window.scrollTo(0,0);navPush();if(v==='home')poll(true)}
 function jumpTopic(ti,rep){if(!rep)navSave();view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
   render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){const nv=document.querySelector('nav.tabs');window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-(nv?nv.offsetHeight:0)-33-12);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 let lastOmi=null;
@@ -450,14 +450,14 @@ async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;bt
 function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').forEach(s=>{const n=LK[id]||0;s.textContent='いいね '+n;s.hidden=!n});document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const mb_=e.target.closest('.mn');if(mb_){e.preventDefault();toggleMinus(mb_);return}const tx_=e.target.closest('.ans li .txt');const li=tx_&&tx_.closest('.ans li');if(li&&!e.target.closest('a,button,.st')&&!document.getElementById('shot').contains(li)&&!(window.getSelection&&String(getSelection()).length)&&!window._moved){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
 let SV=-1,lastAct=Date.now(),polling=false;
-['pointerdown','keydown','scroll','touchstart'].forEach(ev=>addEventListener(ev,()=>{const idle=Date.now()-lastAct>180000;lastAct=Date.now();if(idle)poll(true)},{passive:true}));
+['pointerdown','keydown','scroll','touchstart'].forEach(ev=>addEventListener(ev,()=>{const idle=Date.now()-lastAct>180000;lastAct=Date.now();if(idle&&view==='home')poll(true)},{passive:true}));
 function applyState(j){if(!j||j.error)return;const ch=j.v!==SV;SV=j.v;LK=j.likes||{};MK=j.minus||{};RC=j.recent||[];
   if(document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}else{Object.keys(LK).forEach(paintLikes);Object.keys(MK).forEach(paintMinus)}}
 async function loadState(){try{applyState(await fetch(API+'/state',{cache:'no-store'}).then(r=>r.json()))}catch(e){RC=RC||[];if(view==='home')render()}}
 async function poll(force){if(polling)return;if(!force&&(document.hidden||Date.now()-lastAct>180000))return;polling=true;
   try{const j=await fetch(API+'/ver',{cache:'no-store'}).then(r=>r.json());if(j&&typeof j.v==='number'&&j.v!==SV)await loadState()}catch(e){}polling=false}
-let pollT=0;setInterval(()=>{pollT++;if(view==='home'||pollT%4===0)poll()},4000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastAct=Date.now();poll(true)}});
+setInterval(()=>{if(view==='home')poll()},4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastAct=Date.now();if(view==='home')poll(true)}});
 loadState();
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${a[4]?`<span class="st neg mnn" data-lid="${a[4]}"${mlikes(a)?'':' hidden'}>マイナス票 ${mlikes(a)}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
