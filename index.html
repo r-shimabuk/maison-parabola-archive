@@ -50,7 +50,7 @@ nav.tabs .wrap{display:flex;gap:6px;align-items:center;padding-top:10px;padding-
 .topic:nth-of-type(4n+3) h3{border-color:var(--green)}
 .topic:nth-of-type(4n+4) h3{border-color:var(--yellow)}
 .ans{list-style:none;margin:0;padding:0}
-.ans li{display:grid;grid-template-columns:5.6em 1fr;gap:10px;padding:9px 0;border-top:1px dashed var(--line);font-size:19px;line-height:1.65}
+.ans li{display:grid;grid-template-columns:5.6em 1fr 1.8em;gap:10px;padding:9px 0;border-top:1px dashed var(--line);font-size:19px;line-height:1.65}
 .ans li:first-child{border-top:0}
 .who{font-size:12px;font-weight:600;padding-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .txt{white-space:pre-line;word-break:break-word}
@@ -146,7 +146,8 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .h-go button{font:inherit;font-size:14px;font-weight:600;border-radius:999px;padding:9px 22px;cursor:pointer;border:1.5px solid var(--ink);background:#fff;color:var(--ink)}
 .h-go button:first-child{background:var(--ink);color:#fff}
 @media (max-width:520px){.h-main .hs b{font-size:34px}.hs b{font-size:24px}.h-grid{grid-template-columns:repeat(2,1fr)}}
-.lk{font:inherit;background:none;border:0;padding:0 2px;margin-left:8px;font-size:17px;line-height:1;color:#b7b3a8;cursor:pointer;vertical-align:-1px;-webkit-tap-highlight-color:transparent}
+.lkc{display:flex;align-items:center;justify-content:flex-end}
+.lk{font:inherit;background:none;border:0;padding:6px 0 6px 6px;margin:0;font-size:18px;line-height:1;color:#b7b3a8;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lk.on{color:#e0453a}
 header.hero{transition:padding .5s cubic-bezier(.2,.8,.2,1)}
 .hero h1 span,.stats b,.stats div{transition:font-size .5s cubic-bezier(.2,.8,.2,1)}
@@ -164,7 +165,10 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   .topic{padding:16px 16px 10px}
   .topic h3{font-size:14.5px}
   .ans li{font-size:18px}
-  .ans li{grid-template-columns:1fr;gap:0}
+  .ans li{grid-template-columns:1fr 1.8em;gap:0}
+  .ans li .who{grid-column:1;grid-row:1}
+  .ans li .txt{grid-column:1;grid-row:2}
+  .ans li .lkc{grid-column:2;grid-row:1/3}
   .who{padding-top:0}
   .yearhead h2{font-size:28px}
   .hero{padding:20px 0 12px}
@@ -288,7 +292,7 @@ let lastOmi=null;
 function fortune(sc){return sc>=8?['大吉','#B98F00']:sc>=4?['中吉','#FF3400']:sc>=2?['小吉','#009944']:sc>=1?['吉','#0086F1']:sc===0?['末吉','#6b6a66']:['凶','#2f5d8a']}
 function drawOmikuji(){const t=D.topics[Math.floor(Math.random()*D.topics.length)];const a=t.ans[Math.floor(Math.random()*t.ans.length)];lastOmi=[t,a];showOmi(lastOmi)}
 function showOmi([t,a]){const f=fortune(SC(a));const c=document.getElementById('omiCard');
-  c.innerHTML=`<article class="topic omi-card"><div class="omi-f" style="color:${f[1]}">${f[0]}</div><div class="meta"><span>${fmt(t.d)}</span><span>出題 ${esc(t.by)}</span></div><h3>${esc(t.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${stp(a)}</span></li></ul></article>`;
+  c.innerHTML=`<article class="topic omi-card"><div class="omi-f" style="color:${f[1]}">${f[0]}</div><div class="meta"><span>${fmt(t.d)}</span><span>出題 ${esc(t.by)}</span></div><h3>${esc(t.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`;
   c.firstChild.animate([{opacity:0},{opacity:1}],{duration:280,easing:'ease-out'});
   document.getElementById('omiBtn').textContent='もう一度引く'}
 let SH=null;function shuffled(){if(!SH){SH=D.topics.map((t,i)=>[t,i]);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]]}}return SH}
@@ -307,9 +311,9 @@ async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;bt
 function paintLikes(id){document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b)}});
 fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
-const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${likeBtn(a)}`;
+const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
-  return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${stp(a)}</span></li>`}
+  return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li>`}
 function render(){
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   renderFilters();
@@ -359,7 +363,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
       if(who&&a[0]!==who)return;
       if(ql&&!(a[1].toLowerCase().includes(ql)||t.q.toLowerCase().includes(ql)))return;
       if(out.length>=500)return;
-      out.push(`<article class="topic"><div class="meta"><span class="rno${rank<=3&&rmode!=='minus'?' g'+rank:''}">${rank}位</span><span>${fmt(t.d)}</span><span class="n">${rmode==='minus'?'マイナス −'+a[3]:'評価 '+SC(a)}</span></div><h3>${hl(t.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${stp(a)}</span></li></ul></article>`)});
+      out.push(`<article class="topic"><div class="meta"><span class="rno${rank<=3&&rmode!=='minus'?' g'+rank:''}">${rank}位</span><span>${fmt(t.d)}</span><span class="n">${rmode==='minus'?'マイナス −'+a[3]:'評価 '+SC(a)}</span></div><h3>${hl(t.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`)});
     cnt=out.length;
     html=`<div class="rankseg seg"><button data-r="plus" class="${rmode==='plus'?'on':''}">プラスランキング</button><button data-r="minus" class="${rmode==='minus'?'on':''}">マイナスランキング</button></div><div class="rankhead">${rmode==='minus'?'涙などマイナスのスタンプが押された回答'+all.length+'件を、マイナスが多い順に並べています':'スタンプからマイナスのスタンプ（涙など）を引いた評価が1以上の回答'+all.length.toLocaleString()+'件を、評価が高い順に並べています'}${out.length>=500?'（上位500件まで表示）':''}</div>`+out.join('');
   }else if(view==='member'){
