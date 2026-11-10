@@ -367,7 +367,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.getElementById('filters').style.display=(view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('menuBtn').style.display=view==='home'?'none':'';
   document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
-  document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp'||sort==='count')?'none':'flex';
+  document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp'||sort==='count'||(view==='ogiri'&&who&&aorder==='score'))?'none':'flex';
   document.getElementById('sortSeg').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('sStamp').style.display=view==='kikaku'?'':'none';
   document.getElementById('sRand').style.display=view==='ogiri'?'':'none';
@@ -378,6 +378,12 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   const list=document.getElementById('list'), yrs=document.getElementById('years');
   const ql=q.toLowerCase();
   let html='',years=[],cnt=0;
+  if(view==='ogiri'&&who&&aorder==='score'){
+    const all=[];D.topics.forEach((x,ti)=>x.ans.forEach((a,ai)=>{if(a[0]===who&&(!ql||a[1].toLowerCase().includes(ql)||x.q.toLowerCase().includes(ql)))all.push([a,x,ti,ai])}));
+    all.sort((p,r)=>SC(r[0])-SC(p[0])||p[2]-r[2]||p[3]-r[3]);
+    html=`<div class="rankhead" style="margin-top:24px">${esc(who)}の答え${all.length.toLocaleString()}件を、評価が高い順に並べています</div>`+all.map(([a,x,ti])=>`<article class="topic"><div class="meta"><span>${fmt(x.d)}</span><span>出題 ${esc(x.by)}</span><span class="n">評価 ${SC(a)}</span></div><h3 class="jump" data-t="${ti}">${hl(x.q)}<span class="go">答えをすべて見る →</span></h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li></ul></article>`).join('');
+    cnt=all.length;
+  }else
   if(view==='ogiri'){
     let cur='';
     (sort==='new'?D.topics.map((t,i)=>[t,i]).reverse():sort==='random'?shuffled():D.topics.map((t,i)=>[t,i])).forEach(([t,ti])=>{
