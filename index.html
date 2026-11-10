@@ -412,7 +412,7 @@ function navSave(){const c=history.state||{};try{history.replaceState({...snap()
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
 function goView(v){navSave();view=v;render();window.scrollTo(0,0);navPush()}
 function jumpTopic(ti,rep){if(!rep)navSave();view='ogiri';if(sort==='random')sort='old';q='';who=null;document.getElementById('q').value='';
-  render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){el.scrollIntoView({block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
+  render();if(rep){const c=history.state||{};try{history.replaceState({...snap(),d:c.d||0},'',hurl())}catch(e){}}else navPush();const el=document.getElementById('t'+ti);if(el){const nv=document.querySelector('nav.tabs');window.scrollTo(0,el.getBoundingClientRect().top+window.scrollY-(nv?nv.offsetHeight:0)-33-12);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 let lastOmi=null;
 function fortune(sc){return sc>=8?['大吉','#B98F00']:sc>=4?['中吉','#FF3400']:sc>=2?['小吉','#009944']:sc>=1?['吉','#0086F1']:sc===0?['末吉','#6b6a66']:['凶','#2f5d8a']}
 function drawOmikuji(){const ti=Math.floor(Math.random()*D.topics.length);const t=D.topics[ti];t._i=ti;const a=t.ans[Math.floor(Math.random()*t.ans.length)];lastOmi=[t,a];showOmi(lastOmi)}
