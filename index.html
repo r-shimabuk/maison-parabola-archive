@@ -339,7 +339,7 @@ const API='https://maison-parabola-likes.ryuju111.workers.dev';
 let LK={};let MY=new Set();let UID='';
 try{UID=localStorage.getItem('mp_uid')||'';if(!UID){UID=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(36).padStart(2,'0')).join('').slice(0,20).replace(/[^a-z0-9]/g,'a');localStorage.setItem('mp_uid',UID)}MY=new Set(JSON.parse(localStorage.getItem('mp_liked')||'[]'))}catch(e){UID='m'+Math.random().toString(36).slice(2,14)}
 const likes=a=>LK[a[4]]||0;
-const SC=a=>(a[2]||0)-(a[3]||0)+likes(a);
+const SC=a=>(a[2]||0)-(a[3]||0)+likes(a)*2;
 const likeBtn=a=>a[4]?`<button class="lk${MY.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="いいね">${MY.has(a[4])?'♥':'♡'}</button>`:'';
 function saveMy(){try{localStorage.setItem('mp_liked',JSON.stringify([...MY]))}catch(e){}}
 async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
