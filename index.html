@@ -208,6 +208,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   .years{padding-bottom:10px}
 }
 @media (max-width:520px){.omi-top{right:14px}header.hero.big{padding:40px 0 28px}.hero.big .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}.hero.big .stats b{font-size:30px}}
+.lknote{font-size:12px;line-height:1.7;color:var(--sub);margin:18px 0 0;display:flex;gap:6px}.lknote .h{color:#FF3400;flex:none}
 </style>
 </head>
 <body>
@@ -246,6 +247,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
   </div></div>
 </nav>
 <main class="wrap">
+<p class="lknote" id="lknote"><span class="h">♡</span>面白いのに埋もれている答えを見つけたら、ハートを押してください。1つの答えに1回だけ押せて、スタンプ2つ分として評価に入ります。</p>
 <div id="list"></div>
 </main>
 <button class="totop" id="totop" aria-label="いちばん上へ">↑</button>
@@ -367,6 +369,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.getElementById('filters').style.display=(view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('menuBtn').style.display=view==='home'?'none':'';
   document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
+  document.getElementById('lknote').style.display=(view==='ogiri'||view==='rank')?'flex':'none';
   document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp'||sort==='count'||(view==='ogiri'&&who&&aorder==='score'))?'none':'flex';
   document.getElementById('sortSeg').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home')?'none':'flex';
   document.getElementById('sStamp').style.display=view==='kikaku'?'':'none';
