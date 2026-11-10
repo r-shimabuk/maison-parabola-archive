@@ -463,7 +463,7 @@ function applyState(j){if(!j||j.error)return;const first=RC===null;
   const nr=j.recent||[];
   if(first||view!=='home'){RC=nr;PEND=null;showNew(0);if(first&&view==='home')render();return}
   const shown=new Set((RC||[]).map(r=>r[0]+':'+r[1]));const n=nr.filter(r=>!shown.has(r[0]+':'+r[1])).length;
-  if(n>0){PEND=nr;showNew(n)}}
+  if(n>0){PEND=nr;if(window.scrollY<250&&document.getElementById('shot').hidden){RC=PEND;PEND=null;showNew(0);render()}else showNew(n)}}
 async function loadState(){try{applyState(await fetch(API+'/state',{cache:'no-store'}).then(r=>r.json()))}catch(e){RC=RC||[];if(view==='home')render()}}
 async function poll(force){if(polling)return;if(!force&&(document.hidden||Date.now()-lastAct>180000))return;polling=true;
   try{const j=await fetch(API+'/ver',{cache:'no-store'}).then(r=>r.json());if(j&&typeof j.v==='number'&&j.v!==SV)await loadState()}catch(e){}polling=false}
@@ -607,6 +607,7 @@ document.addEventListener('touchend',e=>{if(tx===null)return;const t=e.changedTo
   mi.addEventListener('click',e=>{if(e.target.closest('#miniOmi'))return;goHome()});
   document.getElementById('miniOmi').onclick=()=>document.getElementById('omiTop').click()})();
 document.getElementById('newPill').onclick=applyNew;
+addEventListener('scroll',()=>{if(PEND&&view==='home'&&window.scrollY<250&&document.getElementById('shot').hidden){RC=PEND;PEND=null;showNew(0);render()}},{passive:true});
 document.getElementById('hero').addEventListener('click',e=>{if(e.target.closest('#omiTop'))return;goHome()});
 document.getElementById('omiTop').onclick=()=>{if(view!=='omikuji')goView('omikuji');const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(view!==b.dataset.v)goView(b.dataset.v);else if(view==='home'&&PEND){applyNew();return}window.scrollTo({top:0,behavior:view==='home'?'smooth':'auto'})});
