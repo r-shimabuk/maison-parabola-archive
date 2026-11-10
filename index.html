@@ -85,6 +85,8 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .rk .odai{grid-column:2;font-size:12.5px;color:var(--sub);line-height:1.6}
 .rk .odai b{font-weight:600;color:#3d3c38}
 .rk .m{grid-column:2;font-size:11.5px;color:var(--sub);display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.rno{font-size:13px;font-weight:600;color:var(--ink)}
+.rno.g1{color:#B98F00}.rno.g2{color:#7d838b}.rno.g3{color:#b0704a}
 .rankhead{font-size:13px;color:var(--sub);margin:28px 0 14px}
 .empty{color:var(--sub);text-align:center;padding:60px 0}
 .intro{font-size:13px;color:var(--sub);margin:14px 0 0}
@@ -210,7 +212,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
       if(who&&a[0]!==who)return;
       if(ql&&!(a[1].toLowerCase().includes(ql)||t.q.toLowerCase().includes(ql)))return;
       if(out.length>=500)return;
-      out.push(`<div class="rk${rank<=3?' g'+rank:''}"><div class="no">${rank}</div><div class="a">${hl(a[1])}</div><div class="odai">お題：<b>${hl(t.q.length>80?t.q.slice(0,80)+'…':t.q)}</b></div><div class="m"><span style="color:${col(a[0])};font-weight:600">${esc(a[0])}</span><span>${fmt(t.d)}</span><span class="st" style="margin-left:0">スタンプ ${a[2]}</span></div></div>`)});
+      out.push(`<article class="topic"><div class="meta"><span class="rno${rank<=3?' g'+rank:''}">${rank}位</span><span>${fmt(t.d)}</span><span class="n">スタンプ ${a[2]}</span></div><h3>${hl(t.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${hl(a[1])}</span></li></ul></article>`)});
     cnt=out.length;
     html=`<div class="rankhead">全回答のうち、スタンプが付いた${all.length.toLocaleString()}件をスタンプが多い順に並べています${out.length>=500?'（上位500件まで表示）':''}</div>`+out.join('');
   }else{
