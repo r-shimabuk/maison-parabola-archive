@@ -146,9 +146,8 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .h-go button{font:inherit;font-size:14px;font-weight:600;border-radius:999px;padding:9px 22px;cursor:pointer;border:1.5px solid var(--ink);background:#fff;color:var(--ink)}
 .h-go button:first-child{background:var(--ink);color:#fff}
 @media (max-width:520px){.h-main .hs b{font-size:34px}.hs b{font-size:24px}.h-grid{grid-template-columns:repeat(2,1fr)}}
-.lk{font:inherit;display:inline-flex;align-items:center;gap:3px;margin-left:8px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:0 9px;font-size:13px;line-height:1.8;color:#c0392b;cursor:pointer;vertical-align:2px;-webkit-tap-highlight-color:transparent}
-.lk span{font-size:11px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-.lk.on{background:#FFE3DC;border-color:#FFB9A8}
+.lk{font:inherit;background:none;border:0;padding:0 2px;margin-left:8px;font-size:17px;line-height:1;color:#b7b3a8;cursor:pointer;vertical-align:-1px;-webkit-tap-highlight-color:transparent}
+.lk.on{color:#e0453a}
 header.hero{transition:padding .5s cubic-bezier(.2,.8,.2,1)}
 .hero h1 span,.stats b,.stats div{transition:font-size .5s cubic-bezier(.2,.8,.2,1)}
 header.hero.big{padding:64px 0 46px}
@@ -189,18 +188,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 </style>
 </head>
 <body>
-<header class="hero" id="hero" role="button" tabindex="0" aria-label="メインページへ">
-  <div class="stripe"><i style="background:var(--blue)"></i><i style="background:var(--red)"></i><i style="background:var(--green)"></i><i style="background:var(--yellow)"></i></div>
-  <div class="wrap">
-    <h1><span>MAISON PARABOLA ARCHIVE</span></h1>
-    <div class="stats">
-      <div><b id="s-topic"></b>お題</div>
-      <div><b id="s-ans"></b>回答</div>
-      <div><b id="s-kk"></b>企画</div>
-      <div><b>2018–2026</b>期間</div>
-    </div>
-  </div>
-</header>
+
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-v="ogiri">大喜利</button>
   <button class="tab" data-v="rank">ランキング</button>
@@ -231,10 +219,8 @@ const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","蔵蔵":"#009944",
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
-let view=({"#ogiri":"ogiri","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"home", q="", who=null, sort="old", aorder="post";
-document.getElementById('s-topic').textContent=D.topics.length.toLocaleString();
-document.getElementById('s-ans').textContent=D.topics.reduce((s,t)=>s+t.ans.length,0).toLocaleString();
-document.getElementById('s-kk').textContent=D.kikaku.length.toLocaleString();
+let view=({"#ogiri":"ogiri","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"ogiri", q="", who=null, sort="old", aorder="post";
+
 function hl(s){s=esc(s);if(!q)return s;const k=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return s.replace(new RegExp(k,'gi'),m=>'<mark>'+m+'</mark>')}
 function fmt(d){return d.replace(/-/g,'.')}
 const people=(()=>{const c={};D.topics.forEach(t=>t.ans.forEach(a=>c[a[0]]=(c[a[0]]||0)+1));D.kikaku.forEach(k=>c[k.by]=(c[k.by]||0)+1);return Object.keys(c).sort((a,b)=>c[b]-c[a]).filter(n=>c[n]>=10)})();
@@ -311,14 +297,14 @@ let LK={};let MY=new Set();let UID='';
 try{UID=localStorage.getItem('mp_uid')||'';if(!UID){UID=Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(36).padStart(2,'0')).join('').slice(0,20).replace(/[^a-z0-9]/g,'a');localStorage.setItem('mp_uid',UID)}MY=new Set(JSON.parse(localStorage.getItem('mp_liked')||'[]'))}catch(e){UID='m'+Math.random().toString(36).slice(2,14)}
 const likes=a=>LK[a[4]]||0;
 const SC=a=>(a[2]||0)-(a[3]||0)+likes(a);
-const likeBtn=a=>a[4]?`<button class="lk${MY.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="いいね">${MY.has(a[4])?'♥':'♡'}<span>${likes(a)||''}</span></button>`:'';
+const likeBtn=a=>a[4]?`<button class="lk${MY.has(a[4])?' on':''}" data-id="${a[4]}" aria-label="いいね">${MY.has(a[4])?'♥':'♡'}</button>`:'';
 function saveMy(){try{localStorage.setItem('mp_liked',JSON.stringify([...MY]))}catch(e){}}
 async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;btn.disabled=true;
   const was=MY.has(id);if(was)MY.delete(id);else MY.add(id);LK[id]=Math.max(0,(LK[id]||0)+(was?-1:1));saveMy();paintLikes(id);
   try{const r=await fetch(API+'/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,uid:UID})});const j=await r.json();
     if(typeof j.count==='number'){LK[id]=j.count;if(j.liked)MY.add(id);else MY.delete(id);saveMy();paintLikes(id)}}catch(e){}
   btn.disabled=false}
-function paintLikes(id){document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.innerHTML=(on?'♥':'♡')+'<span>'+(LK[id]||'')+'</span>';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
+function paintLikes(id){document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b)}});
 fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${likeBtn(a)}`;
@@ -335,7 +321,6 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.getElementById('menuBtn').innerHTML='メニュー'+((who||sort!=='old'||aorder!=='post')?'<span class="dot"></span>':'');
   document.getElementById('ansSeg').style.display=view==='ogiri'?'flex':'none';
   document.getElementById('filters').style.display=(view==='omikuji'||view==='home')?'none':'flex';
-  document.getElementById('hero').classList.toggle('big',view==='home');
   document.getElementById('menuBtn').style.display=view==='home'?'none':'';
   document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
   document.getElementById('years').style.display=(view==='rank'||view==='member'||view==='omikuji'||view==='home'||sort==='random'||sort==='stamp')?'none':'flex';
@@ -420,7 +405,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   });
 }
 const goHome=()=>{view='home';try{history.replaceState(null,'',location.pathname)}catch(e){};window.scrollTo(0,0);render()};
-document.getElementById('hero').onclick=goHome;document.getElementById('hero').onkeydown=e=>{if(e.key==='Enter')goHome()};
+
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
 let tm;document.getElementById('q').addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
