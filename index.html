@@ -449,15 +449,16 @@ async function toggleLike(btn){const id=btn.dataset.id;if(btn.disabled)return;bt
   btn.disabled=false}
 function paintLikes(id){document.querySelectorAll('.lkn[data-lid="'+id+'"]').forEach(s=>{const n=LK[id]||0;s.textContent='いいね '+n;s.hidden=!n});document.querySelectorAll('.lk[data-id="'+id+'"]').forEach(b=>{const on=MY.has(id);b.classList.toggle('on',on);b.textContent=on?'♥':'♡';if(on){b.animate([{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'})}})}
 document.addEventListener('click',e=>{const b=e.target.closest('.lk');if(b){e.preventDefault();toggleLike(b);return}const mb_=e.target.closest('.mn');if(mb_){e.preventDefault();toggleMinus(mb_);return}const tx_=e.target.closest('.ans li .txt');const li=tx_&&tx_.closest('.ans li');if(li&&!e.target.closest('a,button,.st')&&!document.getElementById('shot').contains(li)&&!(window.getSelection&&String(getSelection()).length)&&!window._moved){const k=li.querySelector('.lk');if(k){openShot(k.dataset.id);return}}const j=e.target.closest('h3.jump');if(j){jumpTopic(+j.dataset.t)}});
-fetch(API+'/recent').then(r=>r.json()).then(j=>{RC=Array.isArray(j)?j:[];if(view==='home')render()}).catch(()=>{RC=RC||[];if(view==='home')render()});
-function refreshHome(){if(view!=='home'||document.hidden||!document.getElementById('shot').hidden)return;
-  Promise.all([fetch(API+'/recent').then(r=>r.json()),fetch(API+'/likes').then(r=>r.json()),fetch(API+'/minus').then(r=>r.json()).catch(()=>({}))]).then(([rc,lk,mk])=>{
-    if(!Array.isArray(rc))return;const k1=JSON.stringify(rc)+JSON.stringify(lk)+JSON.stringify(mk);if(k1===refreshHome.k)return;refreshHome.k=k1;
-    RC=rc;LK=lk||{};if(mk&&!mk.error)MK=mk;if(view==='home'&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}}).catch(()=>{})}
-setInterval(refreshHome,20000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHome()});
-fetch(API+'/minus').then(r=>r.json()).then(j=>{if(j&&!j.error){MK=j;if(Object.keys(MK).length)render()}}).catch(()=>{});
-fetch(API+'/likes').then(r=>r.json()).then(j=>{LK=j||{};if(Object.keys(LK).length)render()}).catch(()=>{});
+let SV=-1,lastAct=Date.now(),polling=false;
+['pointerdown','keydown','scroll','touchstart'].forEach(ev=>addEventListener(ev,()=>{const idle=Date.now()-lastAct>180000;lastAct=Date.now();if(idle)poll(true)},{passive:true}));
+function applyState(j){if(!j||j.error)return;const ch=j.v!==SV;SV=j.v;LK=j.likes||{};MK=j.minus||{};RC=j.recent||[];
+  if(document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}else{Object.keys(LK).forEach(paintLikes);Object.keys(MK).forEach(paintMinus)}}
+async function loadState(){try{applyState(await fetch(API+'/state',{cache:'no-store'}).then(r=>r.json()))}catch(e){RC=RC||[];if(view==='home')render()}}
+async function poll(force){if(polling)return;if(!force&&(document.hidden||Date.now()-lastAct>180000))return;polling=true;
+  try{const j=await fetch(API+'/ver',{cache:'no-store'}).then(r=>r.json());if(j&&typeof j.v==='number'&&j.v!==SV)await loadState()}catch(e){}polling=false}
+let pollT=0;setInterval(()=>{pollT++;if(view==='home'||pollT%4===0)poll()},4000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastAct=Date.now();poll(true)}});
+loadState();
 const stp=a=>`${a[2]?`<span class="st">スタンプ ${a[2]}</span>`:''}${a[4]?`<span class="st lkn" data-lid="${a[4]}"${likes(a)?'':' hidden'}>いいね ${likes(a)}</span>`:''}${a[3]?`<span class="st neg">マイナス −${a[3]}</span>`:''}${a[4]?`<span class="st neg mnn" data-lid="${a[4]}"${mlikes(a)?'':' hidden'}>マイナス票 ${mlikes(a)}</span>`:''}`;
 function liHTML(a,best,h){const sc=SC(a);const top=sc>0&&sc===best;
   return `<li class="${top?'top':''}"><span class="who" style="color:${col(a[0])}">${esc(a[0])}${top?'<span class="toplbl">いちばん評価</span>':''}</span><span class="txt">${h?hl(a[1]):esc(a[1])}${aimg(a)}${stp(a)}</span><span class="lkc">${likeBtn(a)}</span></li>`}
