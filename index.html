@@ -244,6 +244,7 @@ body.minion nav.tabs{top:33px}
 .newpill{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));height:46px;z-index:29;font:inherit;font-size:13px;font-weight:600;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:0 62px 0 18px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer}
 .newpill[hidden]{display:none}
 .newpill::after{content:'';position:absolute;right:46px;top:11px;bottom:11px;width:1px;background:rgba(255,255,255,.25)}
+.mstats .mtot{font-weight:700;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -462,7 +463,7 @@ function applyState(j){if(!j||j.error)return;const first=RC===null;
   const ids=new Set([...Object.keys(LK),...Object.keys(j.likes||{}),...Object.keys(MK),...Object.keys(j.minus||{})]);
   SV=j.v;LK=j.likes||{};MK=j.minus||{};ids.forEach(id=>{paintLikes(id);paintMinus(id)});
   const nr=j.recent||[];
-  if(first||view!=='home'){RC=nr;PEND=null;showNew(0);if(first&&view==='home')render();return}
+  if(first||view!=='home'){RC=nr;PEND=null;showNew(0);if(first&&document.getElementById('shot').hidden){const y=window.scrollY;render();window.scrollTo(0,y)}return}
   const shown=new Set((RC||[]).map(r=>r[0]+':'+r[1]));const n=nr.filter(r=>!shown.has(r[0]+':'+r[1])).length;
   if(n>0){PEND=nr;if(window.scrollY<250&&document.getElementById('shot').hidden){RC=PEND;PEND=null;showNew(0);render()}else showNew(n)}}
 async function loadState(){try{applyState(await fetch(API+'/state',{cache:'no-store'}).then(r=>r.json()))}catch(e){RC=RC||[];if(view==='home')render()}}
@@ -542,7 +543,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     const arr=Object.values(M).filter(m=>m.ans>0).sort((x,y)=>y.ans-x.ans);
     const max=arr[0].ans, total=arr.reduce((s,m)=>s+m.ans,0);
     const yrs=[...new Set(D.topics.map(t=>t.d.slice(0,4)))].sort();
-    html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span>1回答あたり評価 ${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（評価 ${SC(m.best[0])}）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
+    html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.lk?`<span>いいね ${m.lk}</span>`:''}${m.minus?`<span>マイナス −${m.minus}</span>`:''}${m.mk?`<span>マイナス票 ${m.mk}</span>`:''}<span class="mtot">合計 ${(m.plus-m.minus+m.lk*2-(m.mk||0)*2).toLocaleString()}点</span><span>1回答あたり ${((m.plus-m.minus+m.lk*2-(m.mk||0)*2)/m.ans).toFixed(2)}点</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（合計 ${SC(m.best[0])}点）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
   }else if(view==='home'){
     html=likeHome();cnt=1;
