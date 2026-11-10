@@ -417,7 +417,7 @@ function countUp(){document.querySelectorAll('.hs b[data-n]').forEach(el=>{const
   const f=now=>{const p=Math.min(1,(now-t0)/d);const e=1-Math.pow(1-p,3);el.textContent=dec?(n*e).toFixed(1):Math.round(n*e).toLocaleString();if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)});
   document.querySelectorAll('.h-bars i,.h-week i').forEach(i=>{const w=i.style.width,h=i.style.height;if(w){i.style.width='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=w))}if(h){i.style.height='0';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.height=h))}})}
 
-const snap=()=>({view,sort,q,who,aorder});
+const snap=()=>({view,sort,q,who,aorder,rmode,oimg});
 const hurl=()=>view==='home'?location.pathname:'#'+view;
 function navSave(){const c=history.state||{};try{history.replaceState({...snap(),y:window.scrollY,d:c.d||0},'')}catch(e){}}
 function navPush(){const d=((history.state||{}).d||0)+1;try{history.pushState({...snap(),d},'',hurl())}catch(e){}}
@@ -605,7 +605,10 @@ const goHome=()=>{document.getElementById('panel').hidden=true;if(view==='home')
 document.getElementById('shot').addEventListener('click',e=>{if(e.target.id==='shot')closeShot()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeShot()});
 function goBack(){if(!document.getElementById('shot').hidden){closeShot();return true}if(history.state&&history.state.d>0){history.back();return true}return false}
 window.addEventListener('popstate',e=>{const s=document.getElementById('shot');if(!s.hidden)closeShot(true);const p=e.state;if(!p||!p.view||p.shot)return;view=p.view;sort=p.sort;q=p.q||'';who=p.who;aorder=p.aorder;document.getElementById('q').value=q;document.getElementById('panel').hidden=true;render();window.scrollTo(0,p.y||0)});
-try{history.replaceState({...snap(),d:0},'')}catch(e){}
+let RESTY=0;try{history.scrollRestoration='manual'}catch(e){}
+(()=>{const s=history.state;if(s&&s.view&&!s.shot){view=s.view;sort=s.sort||sort;q=s.q||'';who=s.who||null;aorder=s.aorder||aorder;if(s.rmode)rmode=s.rmode;oimg=!!s.oimg;RESTY=s.y||0;document.getElementById('q').value=q}})();
+try{history.replaceState({...snap(),y:RESTY,d:(history.state&&history.state.d)||0},'',hurl())}catch(e){}
+let _st;addEventListener('scroll',()=>{clearTimeout(_st);_st=setTimeout(()=>{try{const c=history.state||{};if(!c.shot)history.replaceState({...c,...snap(),y:window.scrollY},'')}catch(e){}},250)},{passive:true});
 let tx=null,ty=0;window._moved=false;let _sx=0,_sy=0;document.addEventListener('touchstart',e=>{window._moved=false;_sx=e.touches[0].clientX;_sy=e.touches[0].clientY},{passive:true});document.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientX-_sx)>8||Math.abs(e.touches[0].clientY-_sy)>8)window._moved=true},{passive:true});
 document.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('.tabrow,.seg,.years,input')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{if(tx===null)return;const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty;tx=null;if(Math.abs(dx)>80&&Math.abs(dx)>Math.abs(dy)*2)goBack()},{passive:true});
@@ -628,7 +631,7 @@ document.querySelectorAll('#ansSeg button').forEach(b=>b.onclick=()=>{aorder=b.d
 const tt=document.getElementById('totop');
 addEventListener('scroll',()=>tt.classList.toggle('show',scrollY>600),{passive:true});
 tt.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-render();
+render();if(RESTY)setTimeout(()=>window.scrollTo(0,RESTY),0);
 </script>
 </body>
 </html>
