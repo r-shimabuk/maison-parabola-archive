@@ -313,7 +313,7 @@ const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","貫":"#009944","�
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
-let oimg=false;let msort='rand';const MRND={};
+let oimg=false;let msort=['ans','avg','odai','kk'][Math.floor(Math.random()*4)];const MRND={};
 let view=({"#home":"home","#ogiri":"ogiri","#odai":"odai","#kikaku":"kikaku","#rank":"rank","#member":"member","#omikuji":"omikuji"})[location.hash]||"home", q="", who=null, sort="old", aorder="post";
 
 function hl(s){s=esc(s);if(!q)return s;const k=esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return s.replace(new RegExp(k,'gi'),m=>'<mark>'+m+'</mark>')}
