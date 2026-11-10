@@ -108,12 +108,13 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .mbest .a{font-size:17px;margin-top:2px;white-space:pre-line}
 .reshuf{font:inherit;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:1px 8px;cursor:pointer;color:var(--ink)}
 .kseg{margin:24px 0 10px}
-.omi{text-align:center;padding:36px 0 20px}
-.omi-lbl{font-size:24px;font-weight:700}
-.omi-sub{font-size:13px;color:var(--sub);margin:6px 0 22px}
+.omi{text-align:center;padding:16px 0 10px}
+.omi-lbl{font-size:17px;font-weight:700}
+.omi-sub{font-size:11.5px;color:var(--sub);margin:2px 0 12px;line-height:1.6}
 .omi-card{text-align:left;position:relative}
 .omi-f{font-size:34px;font-weight:700;line-height:1;margin:2px 0 12px;letter-spacing:.06em}
-.omi-btn{font:inherit;font-size:16px;font-weight:600;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:12px 32px;cursor:pointer;margin-top:10px}
+.omi-btn{font:inherit;font-size:14px;font-weight:600;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:9px 28px;cursor:pointer;margin:0 0 14px;min-width:11em}
+#omiCard{min-height:60vh}
 .omi-btn:active{transform:scale(.97)}
 .rankhead{font-size:13px;color:var(--sub);margin:12px 0 14px}
 .empty{color:var(--sub);text-align:center;padding:60px 0}
@@ -207,7 +208,7 @@ function fortune(sc){return sc>=8?['大吉','#B98F00']:sc>=4?['中吉','#FF3400'
 function drawOmikuji(){const t=D.topics[Math.floor(Math.random()*D.topics.length)];const a=t.ans[Math.floor(Math.random()*t.ans.length)];lastOmi=[t,a];showOmi(lastOmi)}
 function showOmi([t,a]){const f=fortune(SC(a));const c=document.getElementById('omiCard');
   c.innerHTML=`<article class="topic omi-card"><div class="omi-f" style="color:${f[1]}">${f[0]}</div><div class="meta"><span>${fmt(t.d)}</span><span>出題 ${esc(t.by)}</span></div><h3>${esc(t.q)}</h3><ul class="ans"><li><span class="who" style="color:${col(a[0])}">${esc(a[0])}</span><span class="txt">${esc(a[1])}${stp(a)}</span></li></ul></article>`;
-  c.firstChild.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:280,easing:'ease-out'});
+  c.firstChild.animate([{opacity:0},{opacity:1}],{duration:280,easing:'ease-out'});
   document.getElementById('omiBtn').textContent='もう一度引く'}
 let SH=null;function shuffled(){if(!SH){SH=D.topics.map((t,i)=>[t,i]);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]]}}return SH}
 const SC=a=>(a[2]||0)-(a[3]||0);
@@ -275,7 +276,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     html=`<div class="rankhead" style="margin-top:28px">回答した人ごとの数です（回答の合計 ${total.toLocaleString()}件）</div>`+arr.filter(m=>!who||m.n===who).map((m,i)=>`<article class="topic mem"><div class="mh"><span class="mrank">${i+1}</span><span class="mname" style="color:${col(m.n)}">${esc(m.n)}</span><span class="mcount">${m.ans.toLocaleString()}<small>回答</small></span></div><div class="bar"><i style="width:${(m.ans/max*100).toFixed(1)}%;background:${col(m.n)}"></i></div><div class="mstats"><span>全体の ${(m.ans/total*100).toFixed(1)}%</span><span>出題 ${m.odai}</span><span>企画 ${m.kk}${m.kst?`（スタンプ ${m.kst}）`:''}</span><span>スタンプ ${m.plus}</span>${m.minus?`<span>マイナス −${m.minus}</span>`:''}<span>1回答あたり評価 ${((m.plus-m.minus)/m.ans).toFixed(2)}</span></div><div class="ylbl">年ごとの回答数</div><div class="myears">${yrs.map(y=>`<span><b>${m.years[y]||0}</b>${y}年</span>`).join('')}</div>${m.best&&SC(m.best[0])>0?`<div class="mbest"><div class="lbl">いちばん評価された回答（評価 ${SC(m.best[0])}）</div><div class="q">${esc(m.best[1].q)}</div><div class="a">${esc(m.best[0][1])}</div></div>`:''}</article>`).join('');
     cnt=arr.length;
   }else if(view==='omikuji'){
-    html=`<div class="omi"><div class="omi-lbl">大喜利おみくじ</div><p class="omi-sub">これまでの${D.topics.reduce((x,t)=>x+t.ans.length,0).toLocaleString()}回答の中から、お題と答えをひとつ引きます</p><div id="omiCard"></div><button class="omi-btn" id="omiBtn">おみくじを引く</button></div>`;
+    html=`<div class="omi"><div class="omi-lbl">大喜利おみくじ</div><p class="omi-sub">${D.topics.reduce((x,t)=>x+t.ans.length,0).toLocaleString()}回答の中から、お題と答えをひとつ引きます</p><button class="omi-btn" id="omiBtn">おみくじを引く</button><div id="omiCard"></div></div>`;
     cnt=1;
   }else{
     let cur='';
