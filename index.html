@@ -78,6 +78,14 @@ mark{background:var(--yellow);color:inherit;padding:0 1px;border-radius:2px}
 .panel .years{padding-bottom:12px}
 .totop{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:30;width:46px;height:46px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:20px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s}
 .totop.show{opacity:1;pointer-events:auto;transform:none}
+.rk{background:var(--card);border-radius:12px;padding:14px 18px 12px;margin:0 0 10px;box-shadow:0 1px 0 var(--line);display:grid;grid-template-columns:2.6em 1fr;gap:4px 12px}
+.rk .no{font-size:22px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--sub)}
+.rk.g1 .no{color:#B98F00}.rk.g2 .no{color:#8a8f96}.rk.g3 .no{color:#b0704a}
+.rk .a{font-size:16px;font-weight:600;white-space:pre-line;word-break:break-word;line-height:1.6}
+.rk .odai{grid-column:2;font-size:12.5px;color:var(--sub);line-height:1.6}
+.rk .odai b{font-weight:600;color:#3d3c38}
+.rk .m{grid-column:2;font-size:11.5px;color:var(--sub);display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.rankhead{font-size:13px;color:var(--sub);margin:28px 0 14px}
 .empty{color:var(--sub);text-align:center;padding:60px 0}
 .intro{font-size:13px;color:var(--sub);margin:14px 0 0}
 footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
@@ -122,6 +130,7 @@ footer{color:var(--sub);font-size:12px;text-align:center;padding:60px 0 80px}
 </header>
 <nav class="tabs"><div class="wrap">
   <button class="tab on" data-v="ogiri">大喜利</button>
+  <button class="tab" data-v="rank">ランキング</button>
   <button class="tab" data-v="kikaku">企画</button>
   <div class="search"><input id="q" type="search" placeholder="ことばで探す" autocomplete="off"></div>
   <button class="menu" id="menuBtn" aria-expanded="false">メニュー</button>
@@ -146,7 +155,7 @@ const D=JSON.parse(document.getElementById('data').textContent);
 const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","蔵蔵":"#009944","コマイ":"#B98F00","日向水":"#7B4FD6","チュゴン":"#D6336C","タイムザウルス":"#4A4A4A","Poké蔵":"#0E8F80"};
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let view=location.hash==="#kikaku"?"kikaku":"ogiri", q="", who=null, sort="old", aorder="post";
+let view=({"#kikaku":"kikaku","#rank":"rank"})[location.hash]||"ogiri", q="", who=null, sort="old", aorder="post";
 document.getElementById('s-topic').textContent=D.topics.length.toLocaleString();
 document.getElementById('s-ans').textContent=D.topics.reduce((s,t)=>s+t.ans.length,0).toLocaleString();
 document.getElementById('s-kk').textContent=D.kikaku.length.toLocaleString();
@@ -171,6 +180,8 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
   document.querySelectorAll('#ansSeg button').forEach(b=>b.classList.toggle('on',b.dataset.a===aorder));
   document.getElementById('menuBtn').innerHTML='メニュー'+((who||sort!=='old'||aorder!=='post')?'<span class="dot"></span>':'');
   document.getElementById('ansSeg').style.display=view==='ogiri'?'flex':'none';
+  document.getElementById('sortSeg').style.display=view==='rank'?'none':'flex';
+  document.getElementById('years').style.display=view==='rank'?'none':'flex';
   const list=document.getElementById('list'), yrs=document.getElementById('years');
   const ql=q.toLowerCase();
   let html='',years=[],cnt=0;
@@ -190,6 +201,18 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
       const li=a=>liHTML(a,best,true);
       html+=`<article class="topic"><div class="meta"><span>${fmt(t.d)}</span><span>出題 ${esc(t.by)}</span><span class="n">${ans.length}答${t.ans.reduce((x,a)=>x+(a[2]||0),0)?` ・ スタンプ ${t.ans.reduce((x,a)=>x+(a[2]||0),0)}`:''}</span></div><h3>${hl(t.q)}</h3><ul class="ans">${ans.slice(0,open).map(li).join('')}</ul>${ans.length>open?`<button class="more" data-t="${ti}">残り${ans.length-open}答を読む ↓</button>`:''}</article>`;
     });
+  }else if(view==='rank'){
+    const all=[];D.topics.forEach(t=>t.ans.forEach((a,i)=>{if((a[2]||0)>0)all.push([a,t,i])}));
+    all.sort((x,y)=>(y[0][2]-x[0][2])||(x[1].d<y[1].d?-1:x[1].d>y[1].d?1:x[2]-y[2]));
+    let rank=0,prev=null,pos=0;
+    const out=[];
+    all.forEach(([a,t])=>{pos++;if(a[2]!==prev){rank=pos;prev=a[2]}
+      if(who&&a[0]!==who)return;
+      if(ql&&!(a[1].toLowerCase().includes(ql)||t.q.toLowerCase().includes(ql)))return;
+      if(out.length>=500)return;
+      out.push(`<div class="rk${rank<=3?' g'+rank:''}"><div class="no">${rank}</div><div class="a">${hl(a[1])}</div><div class="odai">お題：<b>${hl(t.q.length>80?t.q.slice(0,80)+'…':t.q)}</b></div><div class="m"><span style="color:${col(a[0])};font-weight:600">${esc(a[0])}</span><span>${fmt(t.d)}</span><span class="st" style="margin-left:0">スタンプ ${a[2]}</span></div></div>`)});
+    cnt=out.length;
+    html=`<div class="rankhead">全回答のうち、スタンプが付いた${all.length.toLocaleString()}件をスタンプが多い順に並べています${out.length>=500?'（上位500件まで表示）':''}</div>`+out.join('');
   }else{
     let cur='';
     (sort==='new'?[...D.kikaku].reverse():D.kikaku).forEach(k=>{
@@ -211,7 +234,7 @@ document.querySelectorAll('#sortSeg button').forEach(b=>b.classList.toggle('on',
     ul.insertAdjacentHTML('beforeend',ans.slice(LIMIT).map(a=>liHTML(a,best,false)).join(''));b.remove();
   });
 }
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'',view==='kikaku'?'#kikaku':'#ogiri')}catch(e){};window.scrollTo(0,0);render()});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
 let tm;document.getElementById('q').addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
 document.querySelectorAll('#ansSeg button').forEach(b=>b.onclick=()=>{aorder=b.dataset.a;render()});
