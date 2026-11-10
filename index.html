@@ -477,7 +477,11 @@ const goHome=()=>{view='home';try{history.replaceState(null,'',location.pathname
 
 document.getElementById('omiTop').onclick=()=>{view='omikuji';try{history.replaceState(null,'','#omikuji')}catch(e){};window.scrollTo(0,0);render();const b=document.getElementById('omiBtn');if(b&&!lastOmi)drawOmikuji()};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{history.replaceState(null,'','#'+view)}catch(e){};window.scrollTo(0,0);render()});
-let tm;document.getElementById('q').addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
+let tm;const qEl=document.getElementById('q');
+const qDone=()=>{qEl.value=qEl.value.replace(/[ \u3000]+$/,'');clearTimeout(tm);q=qEl.value.trim();render();qEl.blur()};
+qEl.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();qDone()}});
+qEl.addEventListener('input',e=>{if(!e.isComposing&&/[ \u3000]$/.test(qEl.value)){qDone();return}});
+qEl.addEventListener('input',e=>{clearTimeout(tm);tm=setTimeout(()=>{q=e.target.value.trim();render()},200)});
 document.querySelectorAll('#sortSeg button').forEach(b=>b.onclick=()=>{sort=b.dataset.s;render()});
 document.querySelectorAll('#ansSeg button').forEach(b=>b.onclick=()=>{aorder=b.dataset.a;render()});
 const tt=document.getElementById('totop');
