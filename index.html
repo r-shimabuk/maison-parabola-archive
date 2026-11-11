@@ -316,7 +316,7 @@ const D=JSON.parse(document.getElementById('data').textContent);
 document.getElementById('s-topic').textContent=D.topics.length.toLocaleString();
 document.getElementById('s-ans').textContent=D.topics.reduce((s,t)=>s+t.ans.length,0).toLocaleString();
 document.getElementById('s-kk').textContent=D.kikaku.length.toLocaleString();
-const COLORS={"パピー":"#0086F1","なあさん":"#FF3400","貫":"#009944","コマイ":"#B98F00","日向水":"#7B4FD6","チュゴン":"#D6336C","タイムザウルス":"#4A4A4A"};
+const COLORS={"パピー":"#FF3400","なあさん":"#0086F1","貫":"#009944","コマイ":"#B98F00","日向水":"#7B4FD6","チュゴン":"#D6336C","タイムザウルス":"#4A4A4A"};
 const col=n=>COLORS[n]||"#8a877f";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let rmode="plus";
